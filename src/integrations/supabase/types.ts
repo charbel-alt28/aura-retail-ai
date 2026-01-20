@@ -14,7 +14,208 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agent_logs: {
+        Row: {
+          action: string
+          agent_id: string | null
+          agent_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          status: string
+        }
+        Insert: {
+          action: string
+          agent_id?: string | null
+          agent_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status?: string
+        }
+        Update: {
+          action?: string
+          agent_id?: string | null
+          agent_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          config: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          last_action: string | null
+          last_action_at: string | null
+          name: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_action?: string | null
+          last_action_at?: string | null
+          name: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_action?: string | null
+          last_action_at?: string | null
+          name?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customer_queries: {
+        Row: {
+          assigned_agent_id: string | null
+          created_at: string
+          customer_name: string
+          id: string
+          priority: string
+          query_text: string
+          response: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          created_at?: string
+          customer_name: string
+          id?: string
+          priority?: string
+          query_text: string
+          response?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          created_at?: string
+          customer_name?: string
+          id?: string
+          priority?: string
+          query_text?: string
+          response?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_queries_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_rules: {
+        Row: {
+          adjustment_type: string
+          adjustment_value: number
+          conditions: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          priority: number
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          adjustment_type: string
+          adjustment_value?: number
+          conditions?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: number
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          adjustment_type?: string
+          adjustment_value?: number
+          conditions?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: number
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string
+          current_price: number
+          demand_level: string
+          id: string
+          name: string
+          reorder_point: number
+          sku: string
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          current_price?: number
+          demand_level?: string
+          id?: string
+          name: string
+          reorder_point?: number
+          sku: string
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          current_price?: number
+          demand_level?: string
+          id?: string
+          name?: string
+          reorder_point?: number
+          sku?: string
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
