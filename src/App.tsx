@@ -7,13 +7,13 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import { useAuth } from "./hooks/useAuth";
+import { AuthProvider, useAuthContext } from "./contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { authUser, loading } = useAuth();
+  const { authUser, loading } = useAuthContext();
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -29,7 +29,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { authUser, loading } = useAuth();
+  const { authUser, loading } = useAuthContext();
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -41,23 +41,30 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<PublicRoute><AuthPage /></PublicRoute>} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
-
