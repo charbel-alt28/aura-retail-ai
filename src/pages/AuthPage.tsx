@@ -4,7 +4,7 @@ import { Eye, EyeOff, Cpu, Lock, Mail, User, AlertTriangle, Loader2, Shield } fr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -30,7 +30,7 @@ const forgotSchema = z.object({
 });
 
 export default function AuthPage() {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuthContext();
   const [mode, setMode] = useState<Mode>('login');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

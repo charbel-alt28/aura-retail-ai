@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu, Wifi, Database, Shield, LogOut, User, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export function Header() {
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
-  const { authUser, signOut } = useAuth();
+  const { authUser, signOut } = useAuthContext();
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
