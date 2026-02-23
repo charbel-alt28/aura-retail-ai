@@ -58,16 +58,7 @@ interface HypermarketState {
   runDemoScenario: () => Promise<void>;
 }
 
-const initialProducts: Product[] = [
-  { id: '1', name: 'Milk', stock: 150, reorderLevel: 50, demandForecast: 45, basePrice: 3.50, currentPrice: 3.50, demandLevel: 'medium', category: 'Dairy' },
-  { id: '2', name: 'Bread', stock: 200, reorderLevel: 75, demandForecast: 60, basePrice: 2.50, currentPrice: 2.50, demandLevel: 'high', category: 'Bakery' },
-  { id: '3', name: 'Eggs', stock: 300, reorderLevel: 100, demandForecast: 80, basePrice: 4.00, currentPrice: 4.00, demandLevel: 'medium', category: 'Dairy' },
-  { id: '4', name: 'Cheese', stock: 80, reorderLevel: 30, demandForecast: 35, basePrice: 6.00, currentPrice: 6.00, demandLevel: 'low', category: 'Dairy' },
-  { id: '5', name: 'Yogurt', stock: 120, reorderLevel: 40, demandForecast: 50, basePrice: 2.00, currentPrice: 2.00, demandLevel: 'high', category: 'Dairy' },
-  { id: '6', name: 'Apples', stock: 45, reorderLevel: 60, demandForecast: 70, basePrice: 1.50, currentPrice: 1.50, demandLevel: 'high', category: 'Produce' },
-  { id: '7', name: 'Orange Juice', stock: 90, reorderLevel: 35, demandForecast: 40, basePrice: 4.50, currentPrice: 4.50, demandLevel: 'medium', category: 'Beverages' },
-  { id: '8', name: 'Chicken', stock: 25, reorderLevel: 30, demandForecast: 55, basePrice: 8.00, currentPrice: 8.00, demandLevel: 'high', category: 'Meat' },
-];
+import { initialProducts } from './productData';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
