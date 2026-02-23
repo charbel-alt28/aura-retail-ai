@@ -1,30 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Search } from 'lucide-react';
 import { useHypermarketStore, Product } from '@/lib/store';
+import { productImages, CATEGORIES, Category } from '@/lib/productData';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-import milkImg from '@/assets/products/milk.png';
-import breadImg from '@/assets/products/bread.png';
-import eggsImg from '@/assets/products/eggs.png';
-import cheeseImg from '@/assets/products/cheese.png';
-import yogurtImg from '@/assets/products/yogurt.png';
-import applesImg from '@/assets/products/apples.png';
-import orangeJuiceImg from '@/assets/products/orange-juice.png';
-import chickenImg from '@/assets/products/chicken.png';
-
-const productImages: Record<string, string> = {
-  '1': milkImg,
-  '2': breadImg,
-  '3': eggsImg,
-  '4': cheeseImg,
-  '5': yogurtImg,
-  '6': applesImg,
-  '7': orangeJuiceImg,
-  '8': chickenImg,
-};
 
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const { reorderProduct, adjustPrice, setPrice } = useHypermarketStore();
@@ -41,117 +22,87 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: index * 0.02 }}
       className={cn(
-        "glow-card p-4 group",
+        "glow-card p-3 group",
         stockStatus === 'critical' && "border-destructive/50"
       )}
     >
-      <div className="flex gap-3 mb-3">
-        {/* Product Image */}
-        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50">
+      <div className="flex gap-3 mb-2">
+        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50">
           {productImages[product.id] ? (
-            <img
-              src={productImages[product.id]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={productImages[product.id]} alt={product.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-6 w-6 text-muted-foreground" />
+              <Package className="h-5 w-5 text-muted-foreground" />
             </div>
           )}
         </div>
-        <div className="flex-1 flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display text-sm">{product.name}</h3>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-1">
+            <h3 className="font-display text-xs font-semibold truncate">{product.name}</h3>
+            <span className={cn(
+              "px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider flex-shrink-0",
+              stockStatus === 'critical' && "status-critical",
+              stockStatus === 'warning' && "status-warning",
+              stockStatus === 'good' && "status-success"
+            )}>
+              {stockStatus}
+            </span>
           </div>
-          <span className={cn(
-            "px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider",
-            stockStatus === 'critical' && "status-critical",
-            stockStatus === 'warning' && "status-warning",
-            stockStatus === 'good' && "status-success"
-          )}>
-            {stockStatus}
-          </span>
+          <p className="text-[10px] text-muted-foreground">{product.category}</p>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-2">
         <div>
-          <p className="text-xs text-muted-foreground mb-1">Stock Level</p>
-          <div className="flex items-baseline gap-1">
-            <span className={cn(
-              "text-2xl font-display font-bold",
-              stockStatus === 'critical' && "text-destructive neon-text-accent",
-              stockStatus === 'warning' && "text-warning",
-              stockStatus === 'good' && "text-success"
-            )}>
-              {product.stock}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              / {product.reorderLevel} min
-            </span>
-          </div>
+          <p className="text-[10px] text-muted-foreground mb-0.5">Stock</p>
+          <span className={cn(
+            "text-lg font-display font-bold",
+            stockStatus === 'critical' && "text-destructive",
+            stockStatus === 'warning' && "text-warning",
+            stockStatus === 'good' && "text-success"
+          )}>
+            {product.stock}
+          </span>
+          <span className="text-[10px] text-muted-foreground ml-1">/ {product.reorderLevel}</span>
         </div>
         
         <div>
-          <p className="text-xs text-muted-foreground mb-1">Price</p>
+          <p className="text-[10px] text-muted-foreground mb-0.5">Price</p>
           {editingPrice ? (
             <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground">$</span>
+              <span className="text-xs text-muted-foreground">$</span>
               <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={priceValue}
+                type="number" step="0.01" min="0" value={priceValue}
                 onChange={(e) => setPriceValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = parseFloat(priceValue);
-                    if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); }
-                  }
+                  if (e.key === 'Enter') { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }
                   if (e.key === 'Escape') { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }
                 }}
-                autoFocus
-                className="h-8 w-20 bg-input border-border text-sm px-1"
+                autoFocus className="h-6 w-16 bg-input border-border text-xs px-1"
               />
-              <button onClick={() => { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }} className="text-success hover:opacity-80"><Check className="h-4 w-4" /></button>
-              <button onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }} className="text-destructive hover:opacity-80"><X className="h-4 w-4" /></button>
+              <button onClick={() => { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }} className="text-success hover:opacity-80"><Check className="h-3 w-3" /></button>
+              <button onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }} className="text-destructive hover:opacity-80"><X className="h-3 w-3" /></button>
             </div>
           ) : (
             <div className="flex items-center gap-1 cursor-pointer group/price" onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(true); }}>
-              <span className="text-2xl font-display font-bold text-primary">
-                ${product.currentPrice.toFixed(2)}
-              </span>
-              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover/price:opacity-100 transition-opacity" />
+              <span className="text-lg font-display font-bold text-primary">${product.currentPrice.toFixed(2)}</span>
+              <Pencil className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/price:opacity-100 transition-opacity" />
               {priceChange && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className={cn(
-                    "flex items-center",
-                    priceUp ? "text-success" : "text-accent"
-                  )}
-                >
-                  {priceUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                </motion.div>
+                <span className={cn("flex items-center", priceUp ? "text-success" : "text-accent")}>
+                  {priceUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                </span>
               )}
             </div>
           )}
         </div>
       </div>
       
-      {/* Stock bar */}
-      <div className="mb-4">
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+      <div className="mb-2">
+        <div className="h-1 bg-muted rounded-full overflow-hidden">
           <motion.div
-            className={cn(
-              "h-full rounded-full",
-              stockStatus === 'critical' && "bg-destructive",
-              stockStatus === 'warning' && "bg-warning",
-              stockStatus === 'good' && "bg-success"
-            )}
+            className={cn("h-full rounded-full", stockStatus === 'critical' && "bg-destructive", stockStatus === 'warning' && "bg-warning", stockStatus === 'good' && "bg-success")}
             initial={{ width: 0 }}
             animate={{ width: `${Math.min((product.stock / (product.reorderLevel * 3)) * 100, 100)}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -159,34 +110,19 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         </div>
       </div>
       
-      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-        <span>Demand: <span className={cn(
-          "font-semibold",
-          product.demandLevel === 'high' && "text-success",
-          product.demandLevel === 'low' && "text-warning",
-          product.demandLevel === 'medium' && "text-primary"
-        )}>{product.demandLevel}</span></span>
-        <span>Forecast: {product.demandForecast}/day</span>
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2">
+        <span>Demand: <span className={cn("font-semibold", product.demandLevel === 'high' && "text-success", product.demandLevel === 'low' && "text-warning", product.demandLevel === 'medium' && "text-primary")}>{product.demandLevel}</span></span>
+        <span>{product.demandForecast}/day</span>
       </div>
       
-      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {stockStatus !== 'good' && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 text-xs border-primary/50 text-primary hover:bg-primary/10"
-            onClick={() => reorderProduct(product.id, product.reorderLevel * 2)}
-          >
+          <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-primary/50 text-primary hover:bg-primary/10" onClick={() => reorderProduct(product.id, product.reorderLevel * 2)}>
             Reorder
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="outline"
-          className="flex-1 text-xs border-accent/50 text-accent hover:bg-accent/10"
-          onClick={() => adjustPrice(product.id, product.demandLevel)}
-        >
-          Optimize Price
+        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-accent/50 text-accent hover:bg-accent/10" onClick={() => adjustPrice(product.id, product.demandLevel)}>
+          Optimize
         </Button>
       </div>
     </motion.div>
@@ -195,52 +131,105 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 
 export function InventoryDashboard() {
   const { products } = useHypermarketStore();
+  const [selectedCategory, setSelectedCategory] = useState<Category>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(p => p.category === selectedCategory);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    }
+    return filtered;
+  }, [products, selectedCategory, searchQuery]);
   
   const criticalCount = products.filter(p => p.stock < p.reorderLevel).length;
   const totalValue = products.reduce((sum, p) => sum + (p.stock * p.currentPrice), 0);
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="font-display text-lg tracking-wider text-primary flex items-center gap-2">
           <Package className="h-5 w-5" />
           INVENTORY MONITOR
         </h2>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 text-xs">
           {criticalCount > 0 && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="flex items-center gap-1 text-destructive"
-            >
-              <AlertTriangle className="h-4 w-4" />
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1 text-destructive">
+              <AlertTriangle className="h-3.5 w-3.5" />
               <span>{criticalCount} Critical</span>
             </motion.div>
           )}
           <div className="flex items-center gap-1 text-success">
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-3.5 w-3.5" />
             <span>{products.length - criticalCount} OK</span>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-3 gap-2">
         <div className="metric-card">
-          <p className="text-xs text-muted-foreground mb-1">Total SKUs</p>
-          <p className="text-2xl font-display font-bold text-foreground">{products.length}</p>
+          <p className="text-[10px] text-muted-foreground mb-0.5">Total SKUs</p>
+          <p className="text-xl font-display font-bold text-foreground">{products.length}</p>
         </div>
         <div className="metric-card accent">
-          <p className="text-xs text-muted-foreground mb-1">Inventory Value</p>
-          <p className="text-2xl font-display font-bold text-accent">${totalValue.toFixed(0)}</p>
+          <p className="text-[10px] text-muted-foreground mb-0.5">Inventory Value</p>
+          <p className="text-xl font-display font-bold text-accent">${totalValue.toFixed(0)}</p>
+        </div>
+        <div className="metric-card">
+          <p className="text-[10px] text-muted-foreground mb-0.5">Showing</p>
+          <p className="text-xl font-display font-bold text-foreground">{filteredProducts.length}</p>
         </div>
       </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-8 h-8 text-xs bg-input border-border"
+        />
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
-        <AnimatePresence>
-          {products.map((product, index) => (
+      {/* Category tabs */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={cn(
+              "px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all border",
+              selectedCategory === cat
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"
+            )}
+          >
+            {cat}
+            {cat !== 'All' && (
+              <span className="ml-1 opacity-60">
+                {products.filter(p => p.category === cat).length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[500px] overflow-y-auto pr-1">
+        <AnimatePresence mode="popLayout">
+          {filteredProducts.map((product, index) => (
             <ProductCard key={product.id} product={product} index={index} />
           ))}
         </AnimatePresence>
+        {filteredProducts.length === 0 && (
+          <div className="col-span-full text-center py-8 text-muted-foreground text-sm">
+            No products found
+          </div>
+        )}
       </div>
     </div>
   );
