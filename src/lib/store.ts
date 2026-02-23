@@ -43,6 +43,7 @@ interface HypermarketState {
   
   // Pricing actions
   adjustPrice: (productId: string, demandLevel: 'low' | 'medium' | 'high') => void;
+  setPrice: (productId: string, newPrice: number) => void;
   applyPromotion: (productId: string, discountPercent: number) => void;
   
   // Customer service actions
@@ -121,6 +122,23 @@ export const useHypermarketStore = create<HypermarketState>((set, get) => ({
         action: 'PRICE_ADJUST',
         details: `${product.name}: $${product.currentPrice.toFixed(2)} → $${newPrice.toFixed(2)} (${demandLevel} demand)`,
         status: demandLevel === 'high' ? 'success' : demandLevel === 'low' ? 'warning' : 'info'
+      });
+    }
+  },
+
+  setPrice: (productId, newPrice) => {
+    const product = get().products.find(p => p.id === productId);
+    if (product) {
+      set(state => ({
+        products: state.products.map(p =>
+          p.id === productId ? { ...p, currentPrice: newPrice } : p
+        )
+      }));
+      get().addAgentLog({
+        agent: 'pricing',
+        action: 'MANUAL_PRICE',
+        details: `${product.name}: $${product.currentPrice.toFixed(2)} → $${newPrice.toFixed(2)} (manual)`,
+        status: 'info'
       });
     }
   },

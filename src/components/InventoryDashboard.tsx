@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X } from 'lucide-react';
 import { useHypermarketStore, Product } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 function ProductCard({ product, index }: { product: Product; index: number }) {
-  const { reorderProduct, adjustPrice } = useHypermarketStore();
+  const { reorderProduct, adjustPrice, setPrice } = useHypermarketStore();
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceValue, setPriceValue] = useState(product.currentPrice.toFixed(2));
   
   const stockStatus = product.stock < product.reorderLevel ? 'critical' : 
                       product.stock < product.reorderLevel * 1.5 ? 'warning' : 'good';
@@ -58,23 +62,48 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         
         <div>
           <p className="text-xs text-muted-foreground mb-1">Price</p>
-          <div className="flex items-center gap-1">
-            <span className="text-2xl font-display font-bold text-primary">
-              ${product.currentPrice.toFixed(2)}
-            </span>
-            {priceChange && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className={cn(
-                  "flex items-center",
-                  priceUp ? "text-success" : "text-accent"
-                )}
-              >
-                {priceUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-              </motion.div>
-            )}
-          </div>
+          {editingPrice ? (
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground">$</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={priceValue}
+                onChange={(e) => setPriceValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = parseFloat(priceValue);
+                    if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); }
+                  }
+                  if (e.key === 'Escape') { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }
+                }}
+                autoFocus
+                className="h-8 w-20 bg-input border-border text-sm px-1"
+              />
+              <button onClick={() => { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }} className="text-success hover:opacity-80"><Check className="h-4 w-4" /></button>
+              <button onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }} className="text-destructive hover:opacity-80"><X className="h-4 w-4" /></button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 cursor-pointer group/price" onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(true); }}>
+              <span className="text-2xl font-display font-bold text-primary">
+                ${product.currentPrice.toFixed(2)}
+              </span>
+              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover/price:opacity-100 transition-opacity" />
+              {priceChange && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className={cn(
+                    "flex items-center",
+                    priceUp ? "text-success" : "text-accent"
+                  )}
+                >
+                  {priceUp ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                </motion.div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       
