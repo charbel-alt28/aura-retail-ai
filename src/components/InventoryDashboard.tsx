@@ -6,6 +6,26 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import milkImg from '@/assets/products/milk.png';
+import breadImg from '@/assets/products/bread.png';
+import eggsImg from '@/assets/products/eggs.png';
+import cheeseImg from '@/assets/products/cheese.png';
+import yogurtImg from '@/assets/products/yogurt.png';
+import applesImg from '@/assets/products/apples.png';
+import orangeJuiceImg from '@/assets/products/orange-juice.png';
+import chickenImg from '@/assets/products/chicken.png';
+
+const productImages: Record<string, string> = {
+  '1': milkImg,
+  '2': breadImg,
+  '3': eggsImg,
+  '4': cheeseImg,
+  '5': yogurtImg,
+  '6': applesImg,
+  '7': orangeJuiceImg,
+  '8': chickenImg,
+};
+
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const { reorderProduct, adjustPrice, setPrice } = useHypermarketStore();
   const [editingPrice, setEditingPrice] = useState(false);
@@ -27,19 +47,34 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
         stockStatus === 'critical' && "border-destructive/50"
       )}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4 text-primary" />
-          <h3 className="font-display text-sm">{product.name}</h3>
+      <div className="flex gap-3 mb-3">
+        {/* Product Image */}
+        <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50">
+          {productImages[product.id] ? (
+            <img
+              src={productImages[product.id]}
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="h-6 w-6 text-muted-foreground" />
+            </div>
+          )}
         </div>
-        <span className={cn(
-          "px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider",
-          stockStatus === 'critical' && "status-critical",
-          stockStatus === 'warning' && "status-warning",
-          stockStatus === 'good' && "status-success"
-        )}>
-          {stockStatus}
-        </span>
+        <div className="flex-1 flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="font-display text-sm">{product.name}</h3>
+          </div>
+          <span className={cn(
+            "px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider",
+            stockStatus === 'critical' && "status-critical",
+            stockStatus === 'warning' && "status-warning",
+            stockStatus === 'good' && "status-success"
+          )}>
+            {stockStatus}
+          </span>
+        </div>
       </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
