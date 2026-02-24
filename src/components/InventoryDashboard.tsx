@@ -21,112 +21,112 @@ function ProductCard({ product, index, onShowDetail }: { product: Product; index
   
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.02 }}
+      transition={{ delay: index * 0.015 }}
       className={cn(
-        "glow-card p-3 group",
+        "glow-card p-2.5 flex flex-col",
         stockStatus === 'critical' && "border-destructive/50"
       )}
     >
-      <div className="flex gap-3 mb-2">
-        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50">
+      {/* Top: Image + Name + Status */}
+      <div className="flex gap-2 mb-1.5">
+        <div
+          className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50 cursor-pointer"
+          onClick={() => onShowDetail(product)}
+        >
           {productImages[product.id] ? (
             <img src={productImages[product.id]} alt={product.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-5 w-5 text-muted-foreground" />
+              <Package className="h-4 w-4 text-muted-foreground" />
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-1">
-            <h3 className="font-display text-xs font-semibold truncate">{product.name}</h3>
-            <span className={cn(
-              "px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider flex-shrink-0",
-              stockStatus === 'critical' && "status-critical",
-              stockStatus === 'warning' && "status-warning",
-              stockStatus === 'good' && "status-success"
-            )}>
-              {stockStatus}
-            </span>
-          </div>
-          <p className="text-[10px] text-muted-foreground">{product.category}</p>
+          <h3 className="font-display text-[11px] font-semibold truncate leading-tight">{product.name}</h3>
+          <p className="text-[9px] text-muted-foreground leading-tight">{product.category}</p>
+          <span className={cn(
+            "inline-block mt-0.5 px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider",
+            stockStatus === 'critical' && "status-critical",
+            stockStatus === 'warning' && "status-warning",
+            stockStatus === 'good' && "status-success"
+          )}>
+            {stockStatus}
+          </span>
         </div>
       </div>
-      
-      <div className="grid grid-cols-2 gap-3 mb-2">
+
+      {/* Stock + Price row */}
+      <div className="flex justify-between items-end mb-1.5">
         <div>
-          <p className="text-[10px] text-muted-foreground mb-0.5">Stock</p>
+          <p className="text-[9px] text-muted-foreground">Stock</p>
           <span className={cn(
-            "text-lg font-display font-bold",
+            "text-sm font-display font-bold leading-none",
             stockStatus === 'critical' && "text-destructive",
             stockStatus === 'warning' && "text-warning",
             stockStatus === 'good' && "text-success"
           )}>
             {product.stock}
           </span>
-          <span className="text-[10px] text-muted-foreground ml-1">/ {product.reorderLevel}</span>
+          <span className="text-[9px] text-muted-foreground">/{product.reorderLevel}</span>
         </div>
-        
-        <div>
-          <p className="text-[10px] text-muted-foreground mb-0.5">Price</p>
+        <div className="text-right">
+          <p className="text-[9px] text-muted-foreground">Price</p>
           {editingPrice ? (
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-muted-foreground">$</span>
+            <div className="flex items-center gap-0.5">
               <Input
                 type="number" step="0.01" min="0" value={priceValue}
                 onChange={(e) => setPriceValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }
+                  if (e.key === 'Enter') { const v = parseFloat(priceValue); if (!isNaN(v) && v >= 0) { setPrice(product.id, v); setEditingPrice(false); } }
                   if (e.key === 'Escape') { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }
                 }}
-                autoFocus className="h-6 w-16 bg-input border-border text-xs px-1"
+                autoFocus className="h-5 w-14 bg-input border-border text-[10px] px-1"
               />
-              <button onClick={() => { const val = parseFloat(priceValue); if (!isNaN(val) && val >= 0) { setPrice(product.id, val); setEditingPrice(false); } }} className="text-success hover:opacity-80"><Check className="h-3 w-3" /></button>
-              <button onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }} className="text-destructive hover:opacity-80"><X className="h-3 w-3" /></button>
+              <button onClick={() => { const v = parseFloat(priceValue); if (!isNaN(v) && v >= 0) { setPrice(product.id, v); setEditingPrice(false); } }} className="text-success"><Check className="h-2.5 w-2.5" /></button>
+              <button onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(false); }} className="text-destructive"><X className="h-2.5 w-2.5" /></button>
             </div>
           ) : (
-            <div className="flex items-center gap-1 cursor-pointer group/price" onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(true); }}>
-              <span className="text-lg font-display font-bold text-primary">${product.currentPrice.toFixed(2)}</span>
-              <Pencil className="h-2.5 w-2.5 text-muted-foreground opacity-0 group-hover/price:opacity-100 transition-opacity" />
+            <div className="flex items-center gap-0.5 cursor-pointer" onClick={() => { setPriceValue(product.currentPrice.toFixed(2)); setEditingPrice(true); }}>
+              <span className="text-sm font-display font-bold text-primary leading-none">${product.currentPrice.toFixed(2)}</span>
               {priceChange && (
                 <span className={cn("flex items-center", priceUp ? "text-success" : "text-accent")}>
-                  {priceUp ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {priceUp ? <ArrowUpRight className="h-2.5 w-2.5" /> : <ArrowDownRight className="h-2.5 w-2.5" />}
                 </span>
               )}
             </div>
           )}
         </div>
       </div>
-      
-      <div className="mb-2">
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
-          <motion.div
-            className={cn("h-full rounded-full", stockStatus === 'critical' && "bg-destructive", stockStatus === 'warning' && "bg-warning", stockStatus === 'good' && "bg-success")}
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min((product.stock / (product.reorderLevel * 3)) * 100, 100)}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          />
-        </div>
+
+      {/* Stock bar */}
+      <div className="h-1 bg-muted rounded-full overflow-hidden mb-1.5">
+        <motion.div
+          className={cn("h-full rounded-full", stockStatus === 'critical' && "bg-destructive", stockStatus === 'warning' && "bg-warning", stockStatus === 'good' && "bg-success")}
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min((product.stock / (product.reorderLevel * 3)) * 100, 100)}%` }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        />
       </div>
-      
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-2">
+
+      {/* Demand */}
+      <div className="flex justify-between text-[9px] text-muted-foreground mb-2">
         <span>Demand: <span className={cn("font-semibold", product.demandLevel === 'high' && "text-success", product.demandLevel === 'low' && "text-warning", product.demandLevel === 'medium' && "text-primary")}>{product.demandLevel}</span></span>
         <span>{product.demandForecast}/day</span>
       </div>
-      
-      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+
+      {/* Buttons — always visible, stacked to fit */}
+      <div className="flex gap-1 mt-auto">
         {stockStatus !== 'good' && (
-          <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-primary/50 text-primary hover:bg-primary/10" onClick={() => reorderProduct(product.id, product.reorderLevel * 2)}>
+          <Button size="sm" variant="outline" className="flex-1 text-[9px] h-5 px-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => reorderProduct(product.id, product.reorderLevel * 2)}>
             Reorder
           </Button>
         )}
-        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-accent/50 text-accent hover:bg-accent/10" onClick={() => onShowDetail(product)}>
-          <Info className="h-3 w-3 mr-0.5" />
+        <Button size="sm" variant="outline" className="flex-1 text-[9px] h-5 px-1 border-accent/50 text-accent hover:bg-accent/10" onClick={() => onShowDetail(product)}>
           Details
         </Button>
-        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-primary/50 text-primary hover:bg-primary/10" onClick={() => adjustPrice(product.id, product.demandLevel)}>
+        <Button size="sm" variant="outline" className="flex-1 text-[9px] h-5 px-1 border-primary/50 text-primary hover:bg-primary/10" onClick={() => adjustPrice(product.id, product.demandLevel)}>
           Optimize
         </Button>
       </div>
