@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Search } from 'lucide-react';
+import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Search, Info } from 'lucide-react';
 import { useHypermarketStore, Product } from '@/lib/store';
 import { productImages, CATEGORIES, Category } from '@/lib/productData';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ProductDetailDialog } from '@/components/ProductDetailDialog';
 
-function ProductCard({ product, index }: { product: Product; index: number }) {
+function ProductCard({ product, index, onShowDetail }: { product: Product; index: number; onShowDetail: (product: Product) => void }) {
   const { reorderProduct, adjustPrice, setPrice } = useHypermarketStore();
   const [editingPrice, setEditingPrice] = useState(false);
   const [priceValue, setPriceValue] = useState(product.currentPrice.toFixed(2));
@@ -121,7 +122,11 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
             Reorder
           </Button>
         )}
-        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-accent/50 text-accent hover:bg-accent/10" onClick={() => adjustPrice(product.id, product.demandLevel)}>
+        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-accent/50 text-accent hover:bg-accent/10" onClick={() => onShowDetail(product)}>
+          <Info className="h-3 w-3 mr-0.5" />
+          Details
+        </Button>
+        <Button size="sm" variant="outline" className="flex-1 text-[10px] h-6 border-primary/50 text-primary hover:bg-primary/10" onClick={() => adjustPrice(product.id, product.demandLevel)}>
           Optimize
         </Button>
       </div>
@@ -133,6 +138,7 @@ export function InventoryDashboard() {
   const { products } = useHypermarketStore();
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   
   const filteredProducts = useMemo(() => {
     let filtered = products;
@@ -222,7 +228,7 @@ export function InventoryDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[500px] overflow-y-auto pr-1">
         <AnimatePresence mode="popLayout">
           {filteredProducts.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
+            <ProductCard key={product.id} product={product} index={index} onShowDetail={setDetailProduct} />
           ))}
         </AnimatePresence>
         {filteredProducts.length === 0 && (
@@ -231,6 +237,12 @@ export function InventoryDashboard() {
           </div>
         )}
       </div>
+
+      <ProductDetailDialog
+        open={!!detailProduct}
+        onOpenChange={(open) => !open && setDetailProduct(null)}
+        product={detailProduct}
+      />
     </div>
   );
 }
