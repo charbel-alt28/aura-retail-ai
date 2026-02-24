@@ -107,6 +107,9 @@ const Index = () => {
           <p className="text-[10px] mt-1">
             Multi-Agent Architecture • Real-Time Decision Making • Autonomous Operations
           </p>
+          <p className="text-[10px] mt-2 text-muted-foreground/60">
+            © 2026 Hypermarket AI. All rights reserved.
+          </p>
         </motion.footer>
       </main>
     </div>
