@@ -44,8 +44,8 @@ function ProductCard({ product, index, onShowDetail }: { product: Product; index
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-[11px] font-semibold truncate leading-tight">{product.name}</h3>
-          <p className="text-[9px] text-muted-foreground leading-tight">{product.category}</p>
+          <h3 className="font-display text-xs font-bold truncate leading-tight text-foreground">{product.name}</h3>
+          <p className="text-[10px] text-muted-foreground/90 font-medium leading-tight">{product.category}</p>
           <span className={cn(
             "inline-block mt-0.5 px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider",
             stockStatus === 'critical' && "status-critical",
@@ -60,7 +60,7 @@ function ProductCard({ product, index, onShowDetail }: { product: Product; index
       {/* Stock + Price row */}
       <div className="flex justify-between items-end mb-1.5">
         <div>
-          <p className="text-[9px] text-muted-foreground">Stock</p>
+          <p className="text-[10px] text-muted-foreground/80 font-medium">Stock</p>
           <span className={cn(
             "text-sm font-display font-bold leading-none",
             stockStatus === 'critical' && "text-destructive",
@@ -69,10 +69,10 @@ function ProductCard({ product, index, onShowDetail }: { product: Product; index
           )}>
             {product.stock}
           </span>
-          <span className="text-[9px] text-muted-foreground">/{product.reorderLevel}</span>
+          <span className="text-[10px] text-muted-foreground/80 font-medium">/{product.reorderLevel}</span>
         </div>
         <div className="text-right">
-          <p className="text-[9px] text-muted-foreground">Price</p>
+          <p className="text-[10px] text-muted-foreground/80 font-medium">Price</p>
           {editingPrice ? (
             <div className="flex items-center gap-0.5">
               <Input
