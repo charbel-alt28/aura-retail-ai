@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, AlertTriangle, CheckCircle, ArrowUpRight, ArrowDownRight, Pencil, Check, X, Search, Info } from 'lucide-react';
 import { useHypermarketStore, Product } from '@/lib/store';
 import { productImages, CATEGORIES, Category } from '@/lib/productData';
+import { productMetadata } from '@/lib/productMetadata';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,32 +30,37 @@ function ProductCard({ product, index, onShowDetail }: { product: Product; index
         stockStatus === 'critical' && "border-destructive/50"
       )}
     >
-      {/* Top: Image + Name + Status */}
-      <div className="flex gap-2 mb-1.5">
-        <div
-          className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 flex-shrink-0 border border-border/50 cursor-pointer"
-          onClick={() => onShowDetail(product)}
-        >
-          {productImages[product.id] ? (
-            <img src={productImages[product.id]} alt={product.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-display text-xs font-bold truncate leading-tight text-foreground">{product.name}</h3>
-          <p className="text-[10px] text-muted-foreground/90 font-medium leading-tight">{product.category}</p>
-          <span className={cn(
-            "inline-block mt-0.5 px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider",
-            stockStatus === 'critical' && "status-critical",
-            stockStatus === 'warning' && "status-warning",
-            stockStatus === 'good' && "status-success"
-          )}>
-            {stockStatus}
-          </span>
-        </div>
+      {/* Image */}
+      <div
+        className="w-full h-24 rounded-md overflow-hidden bg-muted/30 border border-border/50 cursor-pointer mb-2"
+        onClick={() => onShowDetail(product)}
+      >
+        {productImages[product.id] ? (
+          <img src={productImages[product.id]} alt={product.name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Package className="h-6 w-6 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+
+      {/* Name + Description + Category */}
+      <h3 className="font-display text-xs font-bold truncate leading-tight text-foreground">{product.name}</h3>
+      {productMetadata[product.id] && (
+        <p className="text-[10px] text-muted-foreground/80 leading-snug line-clamp-2 mt-0.5">
+          {productMetadata[product.id].description}
+        </p>
+      )}
+      <div className="flex items-center gap-1.5 mt-1 mb-1.5">
+        <span className="text-[10px] text-muted-foreground/90 font-medium">{product.category}</span>
+        <span className={cn(
+          "inline-block px-1 py-px rounded text-[8px] font-bold uppercase tracking-wider",
+          stockStatus === 'critical' && "status-critical",
+          stockStatus === 'warning' && "status-warning",
+          stockStatus === 'good' && "status-success"
+        )}>
+          {stockStatus}
+        </span>
       </div>
 
       {/* Stock + Price row */}
