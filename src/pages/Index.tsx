@@ -10,6 +10,7 @@ import { CommandCenter } from '@/components/CommandCenter';
 import { MonitoringWidgets } from '@/components/MonitoringWidgets';
 import { InventoryOperations } from '@/components/InventoryOperations';
 import { PricingSalesControl } from '@/components/PricingSalesControl';
+import { AdminSystemControls } from '@/components/AdminSystemControls';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Box, TrendingUp, Users } from 'lucide-react';
 
@@ -46,6 +47,7 @@ const Index = () => {
             <CommandCenter />
             <InventoryOperations />
             <PricingSalesControl />
+            <AdminSystemControls />
             <AgentStatusPanel />
           </motion.aside>
           
