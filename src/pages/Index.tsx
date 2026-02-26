@@ -7,6 +7,9 @@ import { PricingDashboard } from '@/components/PricingDashboard';
 import { CustomerServiceDashboard } from '@/components/CustomerServiceDashboard';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { CommandCenter } from '@/components/CommandCenter';
+import { MonitoringWidgets } from '@/components/MonitoringWidgets';
+import { InventoryOperations } from '@/components/InventoryOperations';
+import { PricingSalesControl } from '@/components/PricingSalesControl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Box, TrendingUp, Users } from 'lucide-react';
 
@@ -22,16 +25,27 @@ const Index = () => {
     <div className="min-h-screen bg-background grid-bg scanlines">
       <Header />
       
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        {/* Monitoring Widgets Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <MonitoringWidgets />
+        </motion.div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Sidebar - Agent Status & Commands */}
           <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="lg:col-span-3 space-y-6"
+            className="lg:col-span-3 space-y-4"
           >
             <CommandCenter />
+            <InventoryOperations />
+            <PricingSalesControl />
             <AgentStatusPanel />
           </motion.aside>
           
