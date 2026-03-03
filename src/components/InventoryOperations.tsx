@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanLine, AlertTriangle, Truck, PackageX, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { useHypermarketStore } from '@/lib/store';
+import { useRBAC } from '@/hooks/useRBAC';
+import { ConfirmActionDialog } from '@/components/ConfirmActionDialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -9,9 +11,11 @@ import { toast } from 'sonner';
 
 export function InventoryOperations() {
   const { products, addAgentLog, reorderProduct } = useHypermarketStore();
+  const { hasPermission } = useRBAC();
   const [expanded, setExpanded] = useState(false);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
 
   const lowStockItems = products.filter(p => p.stock < p.reorderLevel);
   const slowItems = products.filter(p => p.demandLevel === 'low' && p.stock > p.reorderLevel * 2);
@@ -31,48 +35,60 @@ export function InventoryOperations() {
   };
 
   const handleAutoReorder = () => {
-    let count = 0;
-    lowStockItems.forEach(item => {
-      reorderProduct(item.id, item.reorderLevel * 2);
-      count++;
+    if (!hasPermission('bulk_restock')) {
+      toast.error('Insufficient permissions for bulk restock');
+      return;
+    }
+    setConfirmAction({
+      title: 'Bulk Restock Order',
+      description: `This will create purchase orders for ${lowStockItems.length} low-stock items, restocking each to 2× reorder level. This action cannot be undone. Continue?`,
+      onConfirm: () => {
+        let count = 0;
+        lowStockItems.forEach(item => {
+          reorderProduct(item.id, item.reorderLevel * 2);
+          count++;
+        });
+        toast.success(`Purchase orders created for ${count} items`);
+        setActivePanel(null);
+        setConfirmAction(null);
+      },
     });
-    toast.success(`Purchase orders created for ${count} items`);
-    setActivePanel(null);
   };
+
+  const handleSingleReorder = (item: typeof products[0]) => {
+    if (!hasPermission('modify_stock')) {
+      toast.error('Insufficient permissions to modify stock');
+      return;
+    }
+    reorderProduct(item.id, item.reorderLevel * 2);
+    toast.success(`Reordered ${item.name}`);
+  };
+
+  // Viewers can't see inventory ops at all
+  if (!hasPermission('modify_stock') && !hasPermission('bulk_restock')) {
+    return null;
+  }
 
   const operations = [
     {
-      id: 'scan',
-      label: 'Scan Warehouse',
-      desc: 'Real-time inventory refresh',
-      icon: ScanLine,
-      color: 'text-primary border-primary/50 hover:bg-primary/10',
-      onClick: handleScanWarehouse,
-      loading: scanning,
+      id: 'scan', label: 'Scan Warehouse', desc: 'Real-time inventory refresh',
+      icon: ScanLine, color: 'text-primary border-primary/50 hover:bg-primary/10',
+      onClick: handleScanWarehouse, loading: scanning,
     },
     {
-      id: 'lowstock',
-      label: 'Low Stock Report',
-      desc: 'Show urgent items only',
-      icon: AlertTriangle,
-      color: 'text-warning border-warning/50 hover:bg-warning/10',
+      id: 'lowstock', label: 'Low Stock Report', desc: 'Show urgent items only',
+      icon: AlertTriangle, color: 'text-warning border-warning/50 hover:bg-warning/10',
       onClick: () => setActivePanel(activePanel === 'lowstock' ? null : 'lowstock'),
       badge: lowStockItems.length,
     },
     {
-      id: 'supplier',
-      label: 'Supplier Orders',
-      desc: 'Create purchase orders',
-      icon: Truck,
-      color: 'text-accent border-accent/50 hover:bg-accent/10',
+      id: 'supplier', label: 'Supplier Orders', desc: 'Create purchase orders',
+      icon: Truck, color: 'text-accent border-accent/50 hover:bg-accent/10',
       onClick: handleAutoReorder,
     },
     {
-      id: 'slow',
-      label: 'Expired / Slow',
-      desc: 'Identify dead stock',
-      icon: PackageX,
-      color: 'text-destructive border-destructive/50 hover:bg-destructive/10',
+      id: 'slow', label: 'Expired / Slow', desc: 'Identify dead stock',
+      icon: PackageX, color: 'text-destructive border-destructive/50 hover:bg-destructive/10',
       onClick: () => setActivePanel(activePanel === 'slow' ? null : 'slow'),
       badge: slowItems.length,
     },
@@ -80,10 +96,7 @@ export function InventoryOperations() {
 
   return (
     <div className="glow-card p-4 space-y-3">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center justify-between w-full"
-      >
+      <button onClick={() => setExpanded(!expanded)} className="flex items-center justify-between w-full">
         <h2 className="font-display text-sm tracking-wider text-primary flex items-center gap-2">
           <ScanLine className="h-4 w-4" />
           INVENTORY OPS
@@ -93,33 +106,18 @@ export function InventoryOperations() {
 
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden space-y-2"
-          >
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden space-y-2">
             <div className="grid grid-cols-2 gap-1.5">
               {operations.map(op => (
-                <Button
-                  key={op.id}
-                  variant="outline"
-                  size="sm"
-                  disabled={op.loading}
+                <Button key={op.id} variant="outline" size="sm" disabled={op.loading}
                   onClick={op.onClick}
                   className={cn("h-auto py-2 flex-col items-start text-left text-[10px] font-display tracking-wider relative", op.color)}
                 >
                   <div className="flex items-center gap-1.5 w-full">
-                    {op.loading ? (
-                      <RefreshCw className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <op.icon className="h-3 w-3" />
-                    )}
+                    {op.loading ? <RefreshCw className="h-3 w-3 animate-spin" /> : <op.icon className="h-3 w-3" />}
                     <span className="font-semibold">{op.label}</span>
                     {op.badge != null && op.badge > 0 && (
-                      <span className="ml-auto text-[9px] bg-destructive/20 text-destructive px-1.5 rounded-full font-bold">
-                        {op.badge}
-                      </span>
+                      <span className="ml-auto text-[9px] bg-destructive/20 text-destructive px-1.5 rounded-full font-bold">{op.badge}</span>
                     )}
                   </div>
                   <span className="text-[8px] text-muted-foreground mt-0.5">{op.desc}</span>
@@ -127,15 +125,9 @@ export function InventoryOperations() {
               ))}
             </div>
 
-            {/* Low Stock Panel */}
             <AnimatePresence>
               {activePanel === 'lowstock' && lowStockItems.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                   <ScrollArea className="max-h-[200px]">
                     <div className="space-y-1">
                       <p className="font-display text-[10px] text-destructive uppercase tracking-wider">Low Stock Items</p>
@@ -144,14 +136,8 @@ export function InventoryOperations() {
                           <span className="text-foreground/80">{item.name}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-destructive font-bold">{item.stock}/{item.reorderLevel}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-5 px-2 text-[9px] text-primary"
-                              onClick={() => {
-                                reorderProduct(item.id, item.reorderLevel * 2);
-                                toast.success(`Reordered ${item.name}`);
-                              }}
+                            <Button variant="ghost" size="sm" className="h-5 px-2 text-[9px] text-primary"
+                              onClick={() => handleSingleReorder(item)}
                             >
                               Order
                             </Button>
@@ -164,15 +150,9 @@ export function InventoryOperations() {
               )}
             </AnimatePresence>
 
-            {/* Slow Items Panel */}
             <AnimatePresence>
               {activePanel === 'slow' && slowItems.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                   <ScrollArea className="max-h-[200px]">
                     <div className="space-y-1">
                       <p className="font-display text-[10px] text-warning uppercase tracking-wider">Slow / Overstocked Items</p>
@@ -193,6 +173,14 @@ export function InventoryOperations() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmActionDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction?.title ?? ''}
+        description={confirmAction?.description ?? ''}
+        onConfirm={confirmAction?.onConfirm ?? (() => {})}
+      />
     </div>
   );
 }

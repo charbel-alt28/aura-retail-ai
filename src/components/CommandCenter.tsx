@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, RotateCcw, Zap, Brain, TrendingUp, ShieldAlert, Lightbulb, ToggleLeft, ToggleRight, RefreshCw, AlertCircle, Bot, BarChart3, FileText } from 'lucide-react';
+import { Play, RotateCcw, Zap, Brain, TrendingUp, ShieldAlert, Lightbulb, ToggleLeft, ToggleRight, RefreshCw, AlertCircle, Bot, FileText } from 'lucide-react';
 import { useHypermarketStore } from '@/lib/store';
 import { useAIAutomation, AIAction } from '@/hooks/useAIAutomation';
+import { useRBAC } from '@/hooks/useRBAC';
 import { AIResultsPanel } from '@/components/AIResultsPanel';
+import { ConfirmActionDialog } from '@/components/ConfirmActionDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -11,12 +13,30 @@ import { toast } from 'sonner';
 export function CommandCenter() {
   const { isSimulating, runDemoScenario, products } = useHypermarketStore();
   const { loading, results, setResults, runAction } = useAIAutomation();
+  const { hasPermission } = useRBAC();
   const [autoRestock, setAutoRestock] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
   
   const criticalItems = products.filter(p => p.stock < p.reorderLevel).length;
   const optimizableItems = products.filter(p => p.currentPrice === p.basePrice && p.demandLevel !== 'medium').length;
   const totalRevenue = products.reduce((sum, p) => sum + (p.currentPrice * p.demandForecast), 0);
   const stockHealth = Math.round(((products.length - criticalItems) / products.length) * 100);
+
+  const handleRunAI = (action: AIAction) => {
+    if (action === 'optimize' && !hasPermission('run_ai_optimization')) {
+      toast.error('Admin access required for full AI optimization');
+      return;
+    }
+    if (action === 'optimize') {
+      setConfirmAction({
+        title: 'Run Full AI Optimization',
+        description: 'This will analyze all products and may adjust prices and restock recommendations across the entire catalog. Continue?',
+        onConfirm: () => { runAction(action); setConfirmAction(null); },
+      });
+    } else {
+      runAction(action);
+    }
+  };
 
   const aiButtons: { action: AIAction; label: string; icon: React.ReactNode; color: string }[] = [
     { action: 'optimize', label: 'AI OPTIMIZE', icon: <Brain className="h-3.5 w-3.5" />, color: 'border-primary/50 text-primary hover:bg-primary/10' },
@@ -27,7 +47,6 @@ export function CommandCenter() {
   
   return (
     <div className="glow-card p-4 space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-display text-sm tracking-wider text-primary flex items-center gap-2">
           <Zap className="h-4 w-4" />
@@ -35,7 +54,6 @@ export function CommandCenter() {
         </h2>
       </div>
       
-      {/* Run Demo */}
       <Button
         onClick={() => runDemoScenario()}
         disabled={isSimulating}
@@ -76,7 +94,7 @@ export function CommandCenter() {
               variant="outline"
               size="sm"
               disabled={loading !== null}
-              onClick={() => runAction(action)}
+              onClick={() => handleRunAI(action)}
               className={cn("h-8 text-[10px] font-display tracking-wider", color)}
             >
               {loading === action ? (
@@ -98,6 +116,10 @@ export function CommandCenter() {
         </div>
         <button 
           onClick={() => { 
+            if (!hasPermission('modify_stock')) {
+              toast.error('Insufficient permissions');
+              return;
+            }
             setAutoRestock(!autoRestock); 
             toast.success(autoRestock ? 'Auto-restock disabled' : 'Auto-restock enabled');
           }}
@@ -148,8 +170,16 @@ export function CommandCenter() {
         </div>
       </div>
 
-      {/* AI Results Panel */}
       <AIResultsPanel result={results} onClose={() => setResults(null)} />
+
+      {/* Confirmation Dialog */}
+      <ConfirmActionDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction?.title ?? ''}
+        description={confirmAction?.description ?? ''}
+        onConfirm={confirmAction?.onConfirm ?? (() => {})}
+      />
       
       <p className="text-[9px] text-center text-muted-foreground">
         Powered by Agentic AI • Real-time analysis
