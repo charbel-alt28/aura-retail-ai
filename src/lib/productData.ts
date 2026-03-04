@@ -124,6 +124,210 @@ import provoloneImg from '@/assets/products/provolone.png';
 import swissCheeseImg from '@/assets/products/swiss-cheese.png';
 import hummusImg from '@/assets/products/hummus.png';
 
+// Dairy (101-110)
+import almondMilkImg from '@/assets/products/almond-milk.png';
+import coconutYogurtImg from '@/assets/products/coconut-yogurt.png';
+import goatCheeseImg from '@/assets/products/goat-cheese.png';
+import ricottaCheeseImg from '@/assets/products/ricotta-cheese.png';
+import whippedCreamImg from '@/assets/products/whipped-cream.png';
+import chocolateMilkImg from '@/assets/products/chocolate-milk.png';
+import halfAndHalfImg from '@/assets/products/half-and-half.png';
+import fetaCheeseImg from '@/assets/products/feta-cheese.png';
+import mozzarellaImg from '@/assets/products/mozzarella.png';
+import stringCheeseImg from '@/assets/products/string-cheese.png';
+
+// Bakery (111-120)
+import sourdoughBreadImg from '@/assets/products/sourdough-bread.png';
+import ryeBreadImg from '@/assets/products/rye-bread.png';
+import cinnamonRollsImg from '@/assets/products/cinnamon-rolls.png';
+import englishMuffinsImg from '@/assets/products/english-muffins.png';
+import briocheBunsImg from '@/assets/products/brioche-buns.png';
+import bananaBreadImg from '@/assets/products/banana-bread.png';
+import cornbreadImg from '@/assets/products/cornbread.png';
+import pretzelRollsImg from '@/assets/products/pretzel-rolls.png';
+import focacciaImg from '@/assets/products/focaccia.png';
+import naanBreadImg from '@/assets/products/naan-bread.png';
+
+// Produce (121-140)
+import mangoesImg from '@/assets/products/mangoes.png';
+import pineappleImg from '@/assets/products/pineapple.png';
+import grapesImg from '@/assets/products/grapes.png';
+import strawberriesImg from '@/assets/products/strawberries.png';
+import blueberriesImg from '@/assets/products/blueberries.png';
+import raspberriesImg from '@/assets/products/raspberries.png';
+import lemonsImg from '@/assets/products/lemons.png';
+import limesImg from '@/assets/products/limes.png';
+import celeryImg from '@/assets/products/celery.png';
+import zucchiniImg from '@/assets/products/zucchini.png';
+import asparagusImg from '@/assets/products/asparagus.png';
+import greenBeansImg from '@/assets/products/green-beans.png';
+import sweetPotatoesImg from '@/assets/products/sweet-potatoes.png';
+import cornOnTheCobImg from '@/assets/products/corn-on-the-cob.png';
+import kaleImg from '@/assets/products/kale.png';
+import cabbageImg from '@/assets/products/cabbage.png';
+import gingerRootImg from '@/assets/products/ginger-root.png';
+import garlicImg from '@/assets/products/garlic.png';
+import jalapenosImg from '@/assets/products/jalapenos.png';
+import watermelonImg from '@/assets/products/watermelon.png';
+
+// Meat & Poultry (141-155)
+import chickenThighsImg from '@/assets/products/chicken-thighs.png';
+import chickenWingsImg from '@/assets/products/chicken-wings.png';
+import groundTurkeyImg from '@/assets/products/ground-turkey.png';
+import beefRoastImg from '@/assets/products/beef-roast.png';
+import brisketImg from '@/assets/products/brisket.png';
+import porkTenderloinImg from '@/assets/products/pork-tenderloin.png';
+import babyBackRibsImg from '@/assets/products/baby-back-ribs.png';
+import duckBreastImg from '@/assets/products/duck-breast.png';
+import vealCutletsImg from '@/assets/products/veal-cutlets.png';
+import pepperoniImg from '@/assets/products/pepperoni.png';
+import cornedBeefImg from '@/assets/products/corned-beef.png';
+import hotDogsImg from '@/assets/products/hot-dogs.png';
+import beefJerkyImg from '@/assets/products/beef-jerky.png';
+import chickenTendersImg from '@/assets/products/chicken-tenders.png';
+import meatballsImg from '@/assets/products/meatballs.png';
+
+// Seafood (156-165)
+import lobsterTailsImg from '@/assets/products/lobster-tails.png';
+import scallopsImg from '@/assets/products/scallops.png';
+import musselsImg from '@/assets/products/mussels.png';
+import calamariImg from '@/assets/products/calamari.png';
+import sardinesImg from '@/assets/products/sardines.png';
+import anchoviesImg from '@/assets/products/anchovies.png';
+import smokedSalmonImg from '@/assets/products/smoked-salmon.png';
+import clamsImg from '@/assets/products/clams.png';
+import oystersImg from '@/assets/products/oysters.png';
+import swordfishSteakImg from '@/assets/products/swordfish-steak.png';
+
+// Beverages (166-180)
+import coconutWaterImg from '@/assets/products/coconut-water.png';
+import lemonadeImg from '@/assets/products/lemonade.png';
+import icedTeaImg from '@/assets/products/iced-tea.png';
+import rootBeerImg from '@/assets/products/root-beer.png';
+import gingerAleImg from '@/assets/products/ginger-ale.png';
+import cranberryJuiceImg from '@/assets/products/cranberry-juice.png';
+import grapeJuiceImg from '@/assets/products/grape-juice.png';
+import kombuchaImg from '@/assets/products/kombucha.png';
+import proteinShakeImg from '@/assets/products/protein-shake.png';
+import hotChocolateMixImg from '@/assets/products/hot-chocolate-mix.png';
+import chamomileTeaImg from '@/assets/products/chamomile-tea.png';
+import espressoBeansImg from '@/assets/products/espresso-beans.png';
+import decafCoffeeImg from '@/assets/products/decaf-coffee.png';
+import soyMilkImg from '@/assets/products/soy-milk.png';
+import tonicWaterImg from '@/assets/products/tonic-water.png';
+
+// Snacks (181-195)
+import tortillaChipsImg from '@/assets/products/tortilla-chips.png';
+import cheesePuffsImg from '@/assets/products/cheese-puffs.png';
+import riceCakesImg from '@/assets/products/rice-cakes.png';
+import beefJerkyBitesImg from '@/assets/products/beef-jerky-bites.png';
+import darkChocolateBarImg from '@/assets/products/dark-chocolate-bar.png';
+import gummyBearsImg from '@/assets/products/gummy-bears.png';
+import driedMangoImg from '@/assets/products/dried-mango.png';
+import sunflowerSeedsImg from '@/assets/products/sunflower-seeds.png';
+import peanutsImg from '@/assets/products/peanuts.png';
+import veggieStrawsImg from '@/assets/products/veggie-straws.png';
+import fruitSnacksImg from '@/assets/products/fruit-snacks.png';
+import proteinBarImg from '@/assets/products/protein-bar.png';
+import cashewsImg from '@/assets/products/cashews.png';
+import pistachiosImg from '@/assets/products/pistachios.png';
+import candyCornImg from '@/assets/products/candy-corn.png';
+
+// Frozen (196-210)
+import frozenWafflesImg from '@/assets/products/frozen-waffles.png';
+import frozenBurritosImg from '@/assets/products/frozen-burritos.png';
+import frozenFrenchFriesImg from '@/assets/products/frozen-french-fries.png';
+import frozenMeatballsImg from '@/assets/products/frozen-meatballs.png';
+import frozenDumplingsImg from '@/assets/products/frozen-dumplings.png';
+import frozenSpinachImg from '@/assets/products/frozen-spinach.png';
+import frozenCornImg from '@/assets/products/frozen-corn.png';
+import frozenShrimpImg from '@/assets/products/frozen-shrimp.png';
+import iceCreamBarsImg from '@/assets/products/ice-cream-bars.png';
+import frozenPotPiesImg from '@/assets/products/frozen-pot-pies.png';
+import frozenPancakesImg from '@/assets/products/frozen-pancakes.png';
+import frozenEggRollsImg from '@/assets/products/frozen-egg-rolls.png';
+import frozenMangoChunksImg from '@/assets/products/frozen-mango-chunks.png';
+import sorbetImg from '@/assets/products/sorbet.png';
+import frozenMacAndCheeseImg from '@/assets/products/frozen-mac-and-cheese.png';
+
+// Pantry (211-230)
+import chickpeasImg from '@/assets/products/chickpeas.png';
+import lentilsImg from '@/assets/products/lentils.png';
+import kidneyBeansImg from '@/assets/products/kidney-beans.png';
+import quinoaImg from '@/assets/products/quinoa.png';
+import oatmealImg from '@/assets/products/oatmeal.png';
+import pancakeMixImg from '@/assets/products/pancake-mix.png';
+import mapleSyrupImg from '@/assets/products/maple-syrup.png';
+import honeyImg from '@/assets/products/honey.png';
+import brownRiceImg from '@/assets/products/brown-rice.png';
+import instantNoodlesImg from '@/assets/products/instant-noodles.png';
+import tomatoPasteImg from '@/assets/products/tomato-paste.png';
+import coconutMilkImg from '@/assets/products/coconut-milk.png';
+import vegetableBrothImg from '@/assets/products/vegetable-broth.png';
+import beefBrothImg from '@/assets/products/beef-broth.png';
+import cannedTunaImg from '@/assets/products/canned-tuna.png';
+import cannedCornImg from '@/assets/products/canned-corn.png';
+import cornstarchImg from '@/assets/products/cornstarch.png';
+import bakingSodaImg from '@/assets/products/baking-soda.png';
+import bakingPowderImg from '@/assets/products/baking-powder.png';
+import vanillaExtractImg from '@/assets/products/vanilla-extract.png';
+
+// Condiments (231-245)
+import bbqSauceImg from '@/assets/products/bbq-sauce.png';
+import teriyakiSauceImg from '@/assets/products/teriyaki-sauce.png';
+import srirachaImg from '@/assets/products/sriracha.png';
+import worcestershireSauceImg from '@/assets/products/worcestershire-sauce.png';
+import appleCiderVinegarImg from '@/assets/products/apple-cider-vinegar.png';
+import tahiniImg from '@/assets/products/tahini.png';
+import salsaImg from '@/assets/products/salsa.png';
+import guacamoleImg from '@/assets/products/guacamole.png';
+import dijonMustardImg from '@/assets/products/dijon-mustard.png';
+import caesarDressingImg from '@/assets/products/caesar-dressing.png';
+import italianDressingImg from '@/assets/products/italian-dressing.png';
+import honeyMustardImg from '@/assets/products/honey-mustard.png';
+import tartarSauceImg from '@/assets/products/tartar-sauce.png';
+import steakSauceImg from '@/assets/products/steak-sauce.png';
+import relishImg from '@/assets/products/relish.png';
+
+// Health & Household (246-258)
+import laundryDetergentImg from '@/assets/products/laundry-detergent.png';
+import fabricSoftenerImg from '@/assets/products/fabric-softener.png';
+import bleachImg from '@/assets/products/bleach.png';
+import allPurposeCleanerImg from '@/assets/products/all-purpose-cleaner.png';
+import trashBagsImg from '@/assets/products/trash-bags.png';
+import aluminumFoilImg from '@/assets/products/aluminum-foil.png';
+import plasticWrapImg from '@/assets/products/plastic-wrap.png';
+import conditionerImg from '@/assets/products/conditioner.png';
+import bodyLotionImg from '@/assets/products/body-lotion.png';
+import mouthwashImg from '@/assets/products/mouthwash.png';
+import bandagesImg from '@/assets/products/bandages.png';
+import cottonSwabsImg from '@/assets/products/cotton-swabs.png';
+import vitaminsImg from '@/assets/products/vitamins.png';
+
+// Deli (259-268)
+import roastBeefImg from '@/assets/products/roast-beef.png';
+import pastramiImg from '@/assets/products/pastrami.png';
+import bolognaImg from '@/assets/products/bologna.png';
+import pepperJackImg from '@/assets/products/pepper-jack.png';
+import muensterCheeseImg from '@/assets/products/muenster-cheese.png';
+import oliveTapenadeImg from '@/assets/products/olive-tapenade.png';
+import chickenSaladImg from '@/assets/products/chicken-salad.png';
+import coleslawImg from '@/assets/products/coleslaw.png';
+import potatoSaladImg from '@/assets/products/potato-salad.png';
+import eggSaladImg from '@/assets/products/egg-salad.png';
+
+// Baby & Kids (269-278)
+import babyFormulaImg from '@/assets/products/baby-formula.png';
+import babyFoodPureeImg from '@/assets/products/baby-food-puree.png';
+import diapersImg from '@/assets/products/diapers.png';
+import babyWipesImg from '@/assets/products/baby-wipes.png';
+import babyCerealImg from '@/assets/products/baby-cereal.png';
+import juiceBoxesImg from '@/assets/products/juice-boxes.png';
+import animalCrackersImg from '@/assets/products/animal-crackers.png';
+import macAndCheeseCupsImg from '@/assets/products/mac-and-cheese-cups.png';
+import fruitPouchesImg from '@/assets/products/fruit-pouches.png';
+import goldfishCrackersImg from '@/assets/products/goldfish-crackers.png';
+
 export const CATEGORIES = [
   'All',
   'Dairy',
