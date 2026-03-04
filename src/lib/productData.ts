@@ -382,6 +382,68 @@ export const productImages: Record<string, string> = {
   '91': toothpasteImg, '92': deodorantImg, '93': handSanitizerImg, '94': dishSoapImg,
   '95': slicedHamImg, '96': deliTurkeyImg, '97': salamiImg, '98': provoloneImg,
   '99': swissCheeseImg, '100': hummusImg,
+  // Dairy 101-110
+  '101': almondMilkImg, '102': coconutYogurtImg, '103': goatCheeseImg, '104': ricottaCheeseImg,
+  '105': whippedCreamImg, '106': chocolateMilkImg, '107': halfAndHalfImg, '108': fetaCheeseImg,
+  '109': mozzarellaImg, '110': stringCheeseImg,
+  // Bakery 111-120
+  '111': sourdoughBreadImg, '112': ryeBreadImg, '113': cinnamonRollsImg, '114': englishMuffinsImg,
+  '115': briocheBunsImg, '116': bananaBreadImg, '117': cornbreadImg, '118': pretzelRollsImg,
+  '119': focacciaImg, '120': naanBreadImg,
+  // Produce 121-140
+  '121': mangoesImg, '122': pineappleImg, '123': grapesImg, '124': strawberriesImg,
+  '125': blueberriesImg, '126': raspberriesImg, '127': lemonsImg, '128': limesImg,
+  '129': celeryImg, '130': zucchiniImg, '131': asparagusImg, '132': greenBeansImg,
+  '133': sweetPotatoesImg, '134': cornOnTheCobImg, '135': kaleImg, '136': cabbageImg,
+  '137': gingerRootImg, '138': garlicImg, '139': jalapenosImg, '140': watermelonImg,
+  // Meat & Poultry 141-155
+  '141': chickenThighsImg, '142': chickenWingsImg, '143': groundTurkeyImg, '144': beefRoastImg,
+  '145': brisketImg, '146': porkTenderloinImg, '147': babyBackRibsImg, '148': duckBreastImg,
+  '149': vealCutletsImg, '150': pepperoniImg, '151': cornedBeefImg, '152': hotDogsImg,
+  '153': beefJerkyImg, '154': chickenTendersImg, '155': meatballsImg,
+  // Seafood 156-165
+  '156': lobsterTailsImg, '157': scallopsImg, '158': musselsImg, '159': calamariImg,
+  '160': sardinesImg, '161': anchoviesImg, '162': smokedSalmonImg, '163': clamsImg,
+  '164': oystersImg, '165': swordfishSteakImg,
+  // Beverages 166-180
+  '166': coconutWaterImg, '167': lemonadeImg, '168': icedTeaImg, '169': rootBeerImg,
+  '170': gingerAleImg, '171': cranberryJuiceImg, '172': grapeJuiceImg, '173': kombuchaImg,
+  '174': proteinShakeImg, '175': hotChocolateMixImg, '176': chamomileTeaImg, '177': espressoBeansImg,
+  '178': decafCoffeeImg, '179': soyMilkImg, '180': tonicWaterImg,
+  // Snacks 181-195
+  '181': tortillaChipsImg, '182': cheesePuffsImg, '183': riceCakesImg, '184': beefJerkyBitesImg,
+  '185': darkChocolateBarImg, '186': gummyBearsImg, '187': driedMangoImg, '188': sunflowerSeedsImg,
+  '189': peanutsImg, '190': veggieStrawsImg, '191': fruitSnacksImg, '192': proteinBarImg,
+  '193': cashewsImg, '194': pistachiosImg, '195': candyCornImg,
+  // Frozen 196-210
+  '196': frozenWafflesImg, '197': frozenBurritosImg, '198': frozenFrenchFriesImg, '199': frozenMeatballsImg,
+  '200': frozenDumplingsImg, '201': frozenSpinachImg, '202': frozenCornImg, '203': frozenShrimpImg,
+  '204': iceCreamBarsImg, '205': frozenPotPiesImg, '206': frozenPancakesImg, '207': frozenEggRollsImg,
+  '208': frozenMangoChunksImg, '209': sorbetImg, '210': frozenMacAndCheeseImg,
+  // Pantry 211-230
+  '211': chickpeasImg, '212': lentilsImg, '213': kidneyBeansImg, '214': quinoaImg,
+  '215': oatmealImg, '216': pancakeMixImg, '217': mapleSyrupImg, '218': honeyImg,
+  '219': brownRiceImg, '220': instantNoodlesImg, '221': tomatoPasteImg, '222': coconutMilkImg,
+  '223': vegetableBrothImg, '224': beefBrothImg, '225': cannedTunaImg, '226': cannedCornImg,
+  '227': cornstarchImg, '228': bakingSodaImg, '229': bakingPowderImg, '230': vanillaExtractImg,
+  // Condiments 231-245
+  '231': bbqSauceImg, '232': teriyakiSauceImg, '233': srirachaImg, '234': worcestershireSauceImg,
+  '235': appleCiderVinegarImg, '236': tahiniImg, '237': salsaImg, '238': guacamoleImg,
+  '239': dijonMustardImg, '240': caesarDressingImg, '241': italianDressingImg, '242': honeyMustardImg,
+  '243': tartarSauceImg, '244': steakSauceImg, '245': relishImg,
+  // Health & Household 246-258
+  '246': laundryDetergentImg, '247': fabricSoftenerImg, '248': bleachImg, '249': allPurposeCleanerImg,
+  '250': trashBagsImg, '251': aluminumFoilImg, '252': plasticWrapImg, '253': conditionerImg,
+  '254': bodyLotionImg, '255': mouthwashImg, '256': bandagesImg, '257': cottonSwabsImg,
+  '258': vitaminsImg,
+  // Deli 259-268
+  '259': roastBeefImg, '260': pastramiImg, '261': bolognaImg, '262': pepperJackImg,
+  '263': muensterCheeseImg, '264': oliveTapenadeImg, '265': chickenSaladImg, '266': coleslawImg,
+  '267': potatoSaladImg, '268': eggSaladImg,
+  // Baby & Kids 269-278
+  '269': babyFormulaImg, '270': babyFoodPureeImg, '271': diapersImg, '272': babyWipesImg,
+  '273': babyCerealImg, '274': juiceBoxesImg, '275': animalCrackersImg, '276': macAndCheeseCupsImg,
+  '277': fruitPouchesImg, '278': goldfishCrackersImg,
 };
 
 const d = (level: 'low' | 'medium' | 'high') => level;
