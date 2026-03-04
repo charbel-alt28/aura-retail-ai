@@ -4,6 +4,7 @@ import { ScanLine, AlertTriangle, Truck, PackageX, ChevronDown, ChevronUp, Refre
 import { useHypermarketStore } from '@/lib/store';
 import { useRBAC } from '@/hooks/useRBAC';
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog';
+import { ReAuthDialog } from '@/components/ReAuthDialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ export function InventoryOperations() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
+  const [reAuthAction, setReAuthAction] = useState<{ title: string; description: string; onSuccess: () => void } | null>(null);
 
   const lowStockItems = products.filter(p => p.stock < p.reorderLevel);
   const slowItems = products.filter(p => p.demandLevel === 'low' && p.stock > p.reorderLevel * 2);
@@ -39,18 +41,22 @@ export function InventoryOperations() {
       toast.error('Insufficient permissions for bulk restock');
       return;
     }
-    setConfirmAction({
-      title: 'Bulk Restock Order',
-      description: `This will create purchase orders for ${lowStockItems.length} low-stock items, restocking each to 2× reorder level. This action cannot be undone. Continue?`,
-      onConfirm: () => {
-        let count = 0;
-        lowStockItems.forEach(item => {
-          reorderProduct(item.id, item.reorderLevel * 2);
-          count++;
+    // Re-auth required for bulk restock
+    setReAuthAction({
+      title: 'Re-authenticate for Bulk Restock',
+      description: 'Bulk restock creates purchase orders for all low-stock items. Re-enter your password to continue.',
+      onSuccess: () => {
+        setConfirmAction({
+          title: 'Bulk Restock Order',
+          description: `This will create purchase orders for ${lowStockItems.length} low-stock items, restocking each to 2× reorder level. This action cannot be undone. Continue?`,
+          onConfirm: () => {
+            let count = 0;
+            lowStockItems.forEach(item => { reorderProduct(item.id, item.reorderLevel * 2); count++; });
+            toast.success(`Purchase orders created for ${count} items`);
+            setActivePanel(null);
+            setConfirmAction(null);
+          },
         });
-        toast.success(`Purchase orders created for ${count} items`);
-        setActivePanel(null);
-        setConfirmAction(null);
       },
     });
   };
@@ -64,34 +70,18 @@ export function InventoryOperations() {
     toast.success(`Reordered ${item.name}`);
   };
 
-  // Viewers can't see inventory ops at all
-  if (!hasPermission('modify_stock') && !hasPermission('bulk_restock')) {
+  // Only show for roles with inventory access
+  if (!hasPermission('modify_stock') && !hasPermission('bulk_restock') && !hasPermission('view_inventory')) {
     return null;
   }
 
+  const canModify = hasPermission('modify_stock');
+
   const operations = [
-    {
-      id: 'scan', label: 'Scan Warehouse', desc: 'Real-time inventory refresh',
-      icon: ScanLine, color: 'text-primary border-primary/50 hover:bg-primary/10',
-      onClick: handleScanWarehouse, loading: scanning,
-    },
-    {
-      id: 'lowstock', label: 'Low Stock Report', desc: 'Show urgent items only',
-      icon: AlertTriangle, color: 'text-warning border-warning/50 hover:bg-warning/10',
-      onClick: () => setActivePanel(activePanel === 'lowstock' ? null : 'lowstock'),
-      badge: lowStockItems.length,
-    },
-    {
-      id: 'supplier', label: 'Supplier Orders', desc: 'Create purchase orders',
-      icon: Truck, color: 'text-accent border-accent/50 hover:bg-accent/10',
-      onClick: handleAutoReorder,
-    },
-    {
-      id: 'slow', label: 'Expired / Slow', desc: 'Identify dead stock',
-      icon: PackageX, color: 'text-destructive border-destructive/50 hover:bg-destructive/10',
-      onClick: () => setActivePanel(activePanel === 'slow' ? null : 'slow'),
-      badge: slowItems.length,
-    },
+    { id: 'scan', label: 'Scan Warehouse', desc: 'Real-time inventory refresh', icon: ScanLine, color: 'text-primary border-primary/50 hover:bg-primary/10', onClick: handleScanWarehouse, loading: scanning },
+    { id: 'lowstock', label: 'Low Stock Report', desc: 'Show urgent items only', icon: AlertTriangle, color: 'text-warning border-warning/50 hover:bg-warning/10', onClick: () => setActivePanel(activePanel === 'lowstock' ? null : 'lowstock'), badge: lowStockItems.length },
+    ...(canModify ? [{ id: 'supplier', label: 'Supplier Orders', desc: 'Create purchase orders', icon: Truck, color: 'text-accent border-accent/50 hover:bg-accent/10', onClick: handleAutoReorder }] : []),
+    { id: 'slow', label: 'Expired / Slow', desc: 'Identify dead stock', icon: PackageX, color: 'text-destructive border-destructive/50 hover:bg-destructive/10', onClick: () => setActivePanel(activePanel === 'slow' ? null : 'slow'), badge: slowItems.length },
   ];
 
   return (
@@ -136,11 +126,13 @@ export function InventoryOperations() {
                           <span className="text-foreground/80">{item.name}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-destructive font-bold">{item.stock}/{item.reorderLevel}</span>
-                            <Button variant="ghost" size="sm" className="h-5 px-2 text-[9px] text-primary"
-                              onClick={() => handleSingleReorder(item)}
-                            >
-                              Order
-                            </Button>
+                            {canModify && (
+                              <Button variant="ghost" size="sm" className="h-5 px-2 text-[9px] text-primary"
+                                onClick={() => handleSingleReorder(item)}
+                              >
+                                Order
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -174,13 +166,10 @@ export function InventoryOperations() {
         )}
       </AnimatePresence>
 
-      <ConfirmActionDialog
-        open={!!confirmAction}
-        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
-        title={confirmAction?.title ?? ''}
-        description={confirmAction?.description ?? ''}
-        onConfirm={confirmAction?.onConfirm ?? (() => {})}
-      />
+      <ConfirmActionDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction?.title ?? ''} description={confirmAction?.description ?? ''} onConfirm={confirmAction?.onConfirm ?? (() => {})} />
+      <ReAuthDialog open={!!reAuthAction} onOpenChange={(open) => { if (!open) setReAuthAction(null); }}
+        title={reAuthAction?.title ?? ''} description={reAuthAction?.description ?? ''} onSuccess={reAuthAction?.onSuccess ?? (() => {})} />
     </div>
   );
 }
