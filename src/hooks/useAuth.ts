@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 const supabaseAny = supabase as any;
 
 
-export type UserRole = 'admin' | 'operator' | 'viewer';
+export type UserRole = 'admin' | 'operator' | 'viewer' | 'inventory_manager' | 'pricing_manager';
 
 export interface AuthUser {
   user: User;
@@ -143,7 +143,9 @@ export function useAuth() {
     updatePassword,
     logAuditEvent,
     isAdmin: state.authUser?.role === 'admin',
-    isOperator: state.authUser?.role === 'operator' || state.authUser?.role === 'admin',
+    isOperator: ['operator', 'admin', 'inventory_manager', 'pricing_manager'].includes(state.authUser?.role ?? ''),
     isViewer: state.authUser?.role === 'viewer',
+    isInventoryManager: state.authUser?.role === 'inventory_manager' || state.authUser?.role === 'admin',
+    isPricingManager: state.authUser?.role === 'pricing_manager' || state.authUser?.role === 'admin',
   };
 }
