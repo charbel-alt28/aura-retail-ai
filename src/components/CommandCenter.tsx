@@ -6,6 +6,7 @@ import { useAIAutomation, AIAction } from '@/hooks/useAIAutomation';
 import { useRBAC } from '@/hooks/useRBAC';
 import { AIResultsPanel } from '@/components/AIResultsPanel';
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog';
+import { ReAuthDialog } from '@/components/ReAuthDialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ export function CommandCenter() {
   const { hasPermission } = useRBAC();
   const [autoRestock, setAutoRestock] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
+  const [reAuthAction, setReAuthAction] = useState<{ title: string; description: string; onSuccess: () => void } | null>(null);
   
   const criticalItems = products.filter(p => p.stock < p.reorderLevel).length;
   const optimizableItems = products.filter(p => p.currentPrice === p.basePrice && p.demandLevel !== 'medium').length;
@@ -28,10 +30,17 @@ export function CommandCenter() {
       return;
     }
     if (action === 'optimize') {
-      setConfirmAction({
-        title: 'Run Full AI Optimization',
-        description: 'This will analyze all products and may adjust prices and restock recommendations across the entire catalog. Continue?',
-        onConfirm: () => { runAction(action); setConfirmAction(null); },
+      // Require re-authentication for AI optimization
+      setReAuthAction({
+        title: 'Re-authenticate for AI Optimization',
+        description: 'Full AI optimization is a critical action. Please re-enter your password to proceed.',
+        onSuccess: () => {
+          setConfirmAction({
+            title: 'Run Full AI Optimization',
+            description: 'This will analyze all products and may adjust prices and restock recommendations across the entire catalog. Continue?',
+            onConfirm: () => { runAction(action); setConfirmAction(null); },
+          });
+        },
       });
     } else {
       runAction(action);
@@ -84,16 +93,11 @@ export function CommandCenter() {
         )}
       </Button>
 
-      {/* AI Controls */}
       <div>
         <p className="font-display text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">AI & Automation</p>
         <div className="grid grid-cols-2 gap-1.5">
           {aiButtons.map(({ action, label, icon, color }) => (
-            <Button
-              key={action}
-              variant="outline"
-              size="sm"
-              disabled={loading !== null}
+            <Button key={action} variant="outline" size="sm" disabled={loading !== null}
               onClick={() => handleRunAI(action)}
               className={cn("h-8 text-[10px] font-display tracking-wider", color)}
             >
@@ -108,7 +112,6 @@ export function CommandCenter() {
         </div>
       </div>
 
-      {/* Auto-Restock Toggle */}
       <div className="flex items-center justify-between bg-muted/20 border border-border/50 rounded-lg px-3 py-2">
         <div>
           <p className="text-[11px] font-display tracking-wider text-foreground">AUTO-RESTOCK</p>
@@ -116,10 +119,7 @@ export function CommandCenter() {
         </div>
         <button 
           onClick={() => { 
-            if (!hasPermission('modify_stock')) {
-              toast.error('Insufficient permissions');
-              return;
-            }
+            if (!hasPermission('modify_stock')) { toast.error('Insufficient permissions'); return; }
             setAutoRestock(!autoRestock); 
             toast.success(autoRestock ? 'Auto-restock disabled' : 'Auto-restock enabled');
           }}
@@ -129,7 +129,6 @@ export function CommandCenter() {
         </button>
       </div>
 
-      {/* Live Metrics */}
       <div>
         <p className="font-display text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Live Metrics</p>
         <div className="grid grid-cols-2 gap-1.5">
@@ -152,7 +151,6 @@ export function CommandCenter() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div>
         <p className="font-display text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5">Quick Actions</p>
         <div className="grid grid-cols-2 gap-1">
@@ -172,13 +170,20 @@ export function CommandCenter() {
 
       <AIResultsPanel result={results} onClose={() => setResults(null)} />
 
-      {/* Confirmation Dialog */}
       <ConfirmActionDialog
         open={!!confirmAction}
         onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
         title={confirmAction?.title ?? ''}
         description={confirmAction?.description ?? ''}
         onConfirm={confirmAction?.onConfirm ?? (() => {})}
+      />
+
+      <ReAuthDialog
+        open={!!reAuthAction}
+        onOpenChange={(open) => { if (!open) setReAuthAction(null); }}
+        title={reAuthAction?.title ?? ''}
+        description={reAuthAction?.description ?? ''}
+        onSuccess={reAuthAction?.onSuccess ?? (() => {})}
       />
       
       <p className="text-[9px] text-center text-muted-foreground">

@@ -5,6 +5,7 @@ import { useHypermarketStore } from '@/lib/store';
 import { useAIAutomation } from '@/hooks/useAIAutomation';
 import { useRBAC } from '@/hooks/useRBAC';
 import { ConfirmActionDialog } from '@/components/ConfirmActionDialog';
+import { ReAuthDialog } from '@/components/ReAuthDialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,7 @@ export function PricingSalesControl() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
+  const [reAuthAction, setReAuthAction] = useState<{ title: string; description: string; onSuccess: () => void } | null>(null);
 
   const optimizableItems = products.filter(p => p.currentPrice === p.basePrice && p.demandLevel !== 'medium');
   const lowMarginItems = products.filter(p => {
@@ -30,19 +32,26 @@ export function PricingSalesControl() {
       toast.error('Insufficient permissions to modify prices');
       return;
     }
-    setConfirmAction({
-      title: 'Optimize All Prices',
-      description: `This will adjust prices for ${optimizableItems.length} products based on demand signals. Existing manual pricing will be overwritten. Continue?`,
-      onConfirm: async () => {
-        setConfirmAction(null);
-        setOptimizing(true);
-        addAgentLog({ agent: 'pricing', action: 'OPTIMIZE_START', details: 'Running dynamic price optimization...', status: 'info' });
-        let adjusted = 0;
-        optimizableItems.forEach(p => { adjustPrice(p.id, p.demandLevel); adjusted++; });
-        await new Promise(r => setTimeout(r, 1500));
-        addAgentLog({ agent: 'pricing', action: 'OPTIMIZE_DONE', details: `Optimized ${adjusted} product prices based on demand signals`, status: 'success' });
-        setOptimizing(false);
-        toast.success(`${adjusted} prices optimized dynamically`);
+    // Re-auth for price optimization
+    setReAuthAction({
+      title: 'Re-authenticate for Price Optimization',
+      description: 'Price optimization will modify pricing across multiple products. Re-enter your password to continue.',
+      onSuccess: () => {
+        setConfirmAction({
+          title: 'Optimize All Prices',
+          description: `This will adjust prices for ${optimizableItems.length} products based on demand signals. Existing manual pricing will be overwritten. Continue?`,
+          onConfirm: async () => {
+            setConfirmAction(null);
+            setOptimizing(true);
+            addAgentLog({ agent: 'pricing', action: 'OPTIMIZE_START', details: 'Running dynamic price optimization...', status: 'info' });
+            let adjusted = 0;
+            optimizableItems.forEach(p => { adjustPrice(p.id, p.demandLevel); adjusted++; });
+            await new Promise(r => setTimeout(r, 1500));
+            addAgentLog({ agent: 'pricing', action: 'OPTIMIZE_DONE', details: `Optimized ${adjusted} product prices based on demand signals`, status: 'success' });
+            setOptimizing(false);
+            toast.success(`${adjusted} prices optimized dynamically`);
+          },
+        });
       },
     });
   };
@@ -67,14 +76,16 @@ export function PricingSalesControl() {
 
   const handleCompetitorCheck = async () => { await runAction('optimize'); };
 
-  // Viewers can't see pricing controls
-  if (!hasPermission('modify_prices') && !hasPermission('launch_promotion')) {
+  // Only show for roles with pricing access
+  if (!hasPermission('modify_prices') && !hasPermission('launch_promotion') && !hasPermission('view_pricing')) {
     return null;
   }
 
+  const canModify = hasPermission('modify_prices');
+
   const operations = [
-    { id: 'optimize', label: 'Optimize Prices', desc: 'Dynamic pricing adjustment', icon: DollarSign, color: 'text-primary border-primary/50 hover:bg-primary/10', onClick: handleOptimizePrices, loading: optimizing },
-    { id: 'promo', label: 'Launch Promo', desc: 'Apply discount campaign', icon: Tag, color: 'text-accent border-accent/50 hover:bg-accent/10', onClick: handleLaunchPromotion },
+    ...(canModify ? [{ id: 'optimize', label: 'Optimize Prices', desc: 'Dynamic pricing adjustment', icon: DollarSign, color: 'text-primary border-primary/50 hover:bg-primary/10', onClick: handleOptimizePrices, loading: optimizing }] : []),
+    ...(hasPermission('launch_promotion') ? [{ id: 'promo', label: 'Launch Promo', desc: 'Apply discount campaign', icon: Tag, color: 'text-accent border-accent/50 hover:bg-accent/10', onClick: handleLaunchPromotion }] : []),
     { id: 'competitor', label: 'AI Price Check', desc: 'Market comparison via AI', icon: BarChart3, color: 'text-warning border-warning/50 hover:bg-warning/10', onClick: handleCompetitorCheck, loading: loading === 'optimize' },
     { id: 'margin', label: 'Margin Monitor', desc: 'Highlight risky pricing', icon: PieChart, color: 'text-destructive border-destructive/50 hover:bg-destructive/10', onClick: () => setActivePanel(activePanel === 'margin' ? null : 'margin'), badge: lowMarginItems.length },
   ];
@@ -137,13 +148,10 @@ export function PricingSalesControl() {
         )}
       </AnimatePresence>
 
-      <ConfirmActionDialog
-        open={!!confirmAction}
-        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
-        title={confirmAction?.title ?? ''}
-        description={confirmAction?.description ?? ''}
-        onConfirm={confirmAction?.onConfirm ?? (() => {})}
-      />
+      <ConfirmActionDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction?.title ?? ''} description={confirmAction?.description ?? ''} onConfirm={confirmAction?.onConfirm ?? (() => {})} />
+      <ReAuthDialog open={!!reAuthAction} onOpenChange={(open) => { if (!open) setReAuthAction(null); }}
+        title={reAuthAction?.title ?? ''} description={reAuthAction?.description ?? ''} onSuccess={reAuthAction?.onSuccess ?? (() => {})} />
     </div>
   );
 }
