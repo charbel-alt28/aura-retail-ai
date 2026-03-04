@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 const ROLE_COLORS: Record<string, string> = {
   admin: 'text-accent border-accent/50 bg-accent/10',
   operator: 'text-primary border-primary/50 bg-primary/10',
+  inventory_manager: 'text-success border-success/50 bg-success/10',
+  pricing_manager: 'text-warning border-warning/50 bg-warning/10',
   viewer: 'text-muted-foreground border-border bg-muted/20',
 };
 
