@@ -472,6 +472,16 @@ export const productImages: Record<string, string> = {
   '269': babyFormulaImg, '270': babyFoodPureeImg, '271': diapersImg, '272': babyWipesImg,
   '273': babyCerealImg, '274': juiceBoxesImg, '275': animalCrackersImg, '276': macAndCheeseCupsImg,
   '277': fruitPouchesImg, '278': goldfishCrackersImg,
+  // Pet Supplies 279-288
+  '279': dogFoodDryImg, '280': catFoodDryImg, '281': dogTreatsImg, '282': catTreatsImg,
+  '283': catLitterImg, '284': dogFoodWetImg, '285': catFoodWetImg, '286': puppyPadsImg,
+  '287': fleaCollarImg, '288': petShampooImg,
+  // International 289-298
+  '289': sushiRiceImg, '290': curryPasteImg, '291': riceNoodlesImg, '292': coconutCreamImg,
+  '293': misoPasteImg, '294': sambalOelekImg, '295': harissaPasteImg, '296': tahiniSauceImg,
+  '297': fishSauceImg, '298': gochujangImg,
+  // Prepared Foods 299-300
+  '299': rotisserieChickenImg, '300': caesarSaladKitImg,
 };
 
 const d = (level: 'low' | 'medium' | 'high') => level;
