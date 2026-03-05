@@ -328,6 +328,34 @@ import macAndCheeseCupsImg from '@/assets/products/mac-and-cheese-cups.png';
 import fruitPouchesImg from '@/assets/products/fruit-pouches.png';
 import goldfishCrackersImg from '@/assets/products/goldfish-crackers.png';
 
+// Pet Supplies (279-288)
+import dogFoodDryImg from '@/assets/products/dog-food-dry.png';
+import catFoodDryImg from '@/assets/products/cat-food-dry.png';
+import dogTreatsImg from '@/assets/products/dog-treats.png';
+import catTreatsImg from '@/assets/products/cat-treats.png';
+import catLitterImg from '@/assets/products/cat-litter.png';
+import dogFoodWetImg from '@/assets/products/dog-food-wet.png';
+import catFoodWetImg from '@/assets/products/cat-food-wet.png';
+import puppyPadsImg from '@/assets/products/puppy-pads.png';
+import fleaCollarImg from '@/assets/products/flea-collar.png';
+import petShampooImg from '@/assets/products/pet-shampoo.png';
+
+// International (289-298)
+import sushiRiceImg from '@/assets/products/sushi-rice.png';
+import curryPasteImg from '@/assets/products/curry-paste.png';
+import riceNoodlesImg from '@/assets/products/rice-noodles.png';
+import coconutCreamImg from '@/assets/products/coconut-cream.png';
+import misoPasteImg from '@/assets/products/miso-paste.png';
+import sambalOelekImg from '@/assets/products/sambal-oelek.png';
+import harissaPasteImg from '@/assets/products/harissa-paste.png';
+import tahiniSauceImg from '@/assets/products/tahini-sauce.png';
+import fishSauceImg from '@/assets/products/fish-sauce.png';
+import gochujangImg from '@/assets/products/gochujang.png';
+
+// Prepared Foods (299-300)
+import rotisserieChickenImg from '@/assets/products/rotisserie-chicken.png';
+import caesarSaladKitImg from '@/assets/products/caesar-salad-kit.png';
+
 export const CATEGORIES = [
   'All',
   'Dairy',
