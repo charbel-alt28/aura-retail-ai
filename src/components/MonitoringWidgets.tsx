@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, ShoppingCart, HeartPulse, AlertCircle, Brain } from 'lucide-react';
+import { DollarSign, ShoppingCart, HeartPulse, AlertCircle, Brain, CalendarX } from 'lucide-react';
 import { useHypermarketStore } from '@/lib/store';
+import { useExpiryTracking } from '@/hooks/useExpiryTracking';
 import { cn } from '@/lib/utils';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 
@@ -12,12 +13,14 @@ function AnimatedValue({ value, prefix = '', suffix = '', decimals = 0 }: { valu
 
 export function MonitoringWidgets() {
   const { products, queries } = useHypermarketStore();
+  const expiryStats = useExpiryTracking();
 
   const criticalItems = products.filter(p => p.stock < p.reorderLevel).length;
   const totalRevenue = products.reduce((sum, p) => sum + (p.currentPrice * p.demandForecast), 0);
   const stockHealth = Math.round(((products.length - criticalItems) / products.length) * 100);
   const pendingOrders = queries.filter(q => q.status === 'pending').length;
   const aiConfidence = useMemo(() => Math.round(85 + Math.random() * 10), []);
+  const expiryAlertCount = expiryStats.totalAlreadyExpired + expiryStats.totalExpiringWithin3Days;
 
   const widgets = [
     {
@@ -55,10 +58,17 @@ export function MonitoringWidgets() {
       borderClass: 'border-l-accent',
       iconClass: 'text-accent bg-accent/10',
     },
+    {
+      label: 'Expiry Alerts',
+      renderValue: <AnimatedValue value={expiryAlertCount} />,
+      icon: CalendarX,
+      borderClass: expiryAlertCount > 5 ? 'border-l-destructive' : expiryAlertCount > 0 ? 'border-l-warning' : 'border-l-success',
+      iconClass: expiryAlertCount > 5 ? 'text-destructive bg-destructive/10' : expiryAlertCount > 0 ? 'text-warning bg-warning/10' : 'text-success bg-success/10',
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {widgets.map((w, i) => (
         <motion.div
           key={w.label}
