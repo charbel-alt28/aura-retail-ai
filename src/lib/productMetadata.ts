@@ -1,4 +1,4 @@
-// Product metadata: descriptions, origin, production/expiry info
+// Product metadata: descriptions, origin, production/expiry info, storage, cost
 
 export interface ProductMeta {
   description: string;
@@ -7,11 +7,39 @@ export interface ProductMeta {
   doe: string; // Date of Expiry
   weight?: string;
   ingredients?: string;
+  storageLocation?: string; // Warehouse zone / shelf
+  costPerUnit?: number; // Wholesale cost per unit
+  dataSource?: 'pos' | 'manual' | 'supplier_api' | 'spreadsheet';
 }
 
-const meta = (description: string, origin: string, dop: string, doe: string, weight?: string, ingredients?: string): ProductMeta => ({
-  description, origin, dop, doe, weight, ingredients,
+const meta = (
+  description: string, origin: string, dop: string, doe: string,
+  weight?: string, ingredients?: string,
+  storageLocation?: string, costPerUnit?: number,
+  dataSource: ProductMeta['dataSource'] = 'pos'
+): ProductMeta => ({
+  description, origin, dop, doe, weight, ingredients, storageLocation, costPerUnit, dataSource,
 });
+
+// Storage zones
+const ZONES = {
+  DAIRY_COOLER: 'Zone A — Dairy Cooler (2-4°C)',
+  BAKERY: 'Zone B — Bakery Display (18-22°C)',
+  PRODUCE: 'Zone C — Produce Cooler (4-8°C)',
+  MEAT: 'Zone D — Meat Locker (-2 to 2°C)',
+  SEAFOOD: 'Zone E — Seafood Cooler (0-2°C)',
+  BEVERAGE: 'Zone F — Beverage Aisle (18-22°C)',
+  SNACK: 'Zone G — Snack Aisle (18-22°C)',
+  FROZEN: 'Zone H — Frozen Section (-18°C)',
+  PANTRY: 'Zone I — Pantry/Dry Goods (18-22°C)',
+  CONDIMENT: 'Zone J — Condiments Aisle (18-22°C)',
+  HEALTH: 'Zone K — Health & Personal Care (18-22°C)',
+  DELI: 'Zone L — Deli Counter (2-6°C)',
+  BABY: 'Zone M — Baby & Kids Aisle (18-22°C)',
+  PET: 'Zone N — Pet Supplies (18-22°C)',
+  INTL: 'Zone O — International Foods (18-22°C)',
+  PREPARED: 'Zone P — Prepared Foods (Hot/Cold)',
+};
 
 export const productMetadata: Record<string, ProductMeta> = {
   // Dairy
