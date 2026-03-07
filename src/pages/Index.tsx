@@ -15,7 +15,8 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { useRBAC } from '@/hooks/useRBAC';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Box, TrendingUp, Users } from 'lucide-react';
+import { Box, TrendingUp, Users, CalendarX } from 'lucide-react';
+import { ExpiryWastageDashboard } from '@/components/ExpiryWastageDashboard';
 
 const Index = () => {
   const [time, setTime] = useState(new Date());
@@ -55,10 +56,14 @@ const Index = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-6">
             <div className="glow-card p-4">
               <Tabs defaultValue="inventory" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-muted/30 mb-4">
+                <TabsList className="grid w-full grid-cols-4 bg-muted/30 mb-4">
                   <TabsTrigger value="inventory" className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     <Box className="h-4 w-4 mr-2" />
                     Inventory
+                  </TabsTrigger>
+                  <TabsTrigger value="expiry" className="font-display text-xs data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">
+                    <CalendarX className="h-4 w-4 mr-2" />
+                    Expiry
                   </TabsTrigger>
                   <TabsTrigger value="pricing" className="font-display text-xs data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
                     <TrendingUp className="h-4 w-4 mr-2" />
@@ -71,6 +76,7 @@ const Index = () => {
                 </TabsList>
                 
                 <TabsContent value="inventory" className="mt-0"><InventoryDashboard /></TabsContent>
+                <TabsContent value="expiry" className="mt-0"><ExpiryWastageDashboard /></TabsContent>
                 <TabsContent value="pricing" className="mt-0"><PricingDashboard /></TabsContent>
                 <TabsContent value="customer" className="mt-0"><CustomerServiceDashboard /></TabsContent>
               </Tabs>
