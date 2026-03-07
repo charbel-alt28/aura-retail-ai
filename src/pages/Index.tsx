@@ -17,10 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Box, TrendingUp, Users, CalendarX } from 'lucide-react';
 import { ExpiryWastageDashboard } from '@/components/ExpiryWastageDashboard';
+import { useAutoExpiryWatcher } from '@/hooks/useAutoExpiryWatcher';
 
 const Index = () => {
   const [time, setTime] = useState(new Date());
   useSessionTimeout();
+  useAutoExpiryWatcher();
   const { role } = useRBAC();
   
   useEffect(() => {

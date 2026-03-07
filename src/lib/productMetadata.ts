@@ -1,4 +1,4 @@
-// Product metadata: descriptions, origin, production/expiry info
+// Product metadata: descriptions, origin, production/expiry info, storage, cost
 
 export interface ProductMeta {
   description: string;
@@ -7,47 +7,75 @@ export interface ProductMeta {
   doe: string; // Date of Expiry
   weight?: string;
   ingredients?: string;
+  storageLocation?: string; // Warehouse zone / shelf
+  costPerUnit?: number; // Wholesale cost per unit
+  dataSource?: 'pos' | 'manual' | 'supplier_api' | 'spreadsheet';
 }
 
-const meta = (description: string, origin: string, dop: string, doe: string, weight?: string, ingredients?: string): ProductMeta => ({
-  description, origin, dop, doe, weight, ingredients,
+const meta = (
+  description: string, origin: string, dop: string, doe: string,
+  weight?: string, ingredients?: string,
+  storageLocation?: string, costPerUnit?: number,
+  dataSource: ProductMeta['dataSource'] = 'pos'
+): ProductMeta => ({
+  description, origin, dop, doe, weight, ingredients, storageLocation, costPerUnit, dataSource,
 });
+
+// Storage zones
+const ZONES = {
+  DAIRY_COOLER: 'Zone A — Dairy Cooler (2-4°C)',
+  BAKERY: 'Zone B — Bakery Display (18-22°C)',
+  PRODUCE: 'Zone C — Produce Cooler (4-8°C)',
+  MEAT: 'Zone D — Meat Locker (-2 to 2°C)',
+  SEAFOOD: 'Zone E — Seafood Cooler (0-2°C)',
+  BEVERAGE: 'Zone F — Beverage Aisle (18-22°C)',
+  SNACK: 'Zone G — Snack Aisle (18-22°C)',
+  FROZEN: 'Zone H — Frozen Section (-18°C)',
+  PANTRY: 'Zone I — Pantry/Dry Goods (18-22°C)',
+  CONDIMENT: 'Zone J — Condiments Aisle (18-22°C)',
+  HEALTH: 'Zone K — Health & Personal Care (18-22°C)',
+  DELI: 'Zone L — Deli Counter (2-6°C)',
+  BABY: 'Zone M — Baby & Kids Aisle (18-22°C)',
+  PET: 'Zone N — Pet Supplies (18-22°C)',
+  INTL: 'Zone O — International Foods (18-22°C)',
+  PREPARED: 'Zone P — Prepared Foods (Hot/Cold)',
+};
 
 export const productMetadata: Record<string, ProductMeta> = {
   // Dairy
-  '1':  meta('Fresh whole milk, pasteurized and homogenized', 'USA', '2026-02-20', '2026-03-10', '1 Gallon'),
-  '3':  meta('Farm-fresh large eggs, grade A', 'USA', '2026-02-18', '2026-03-18', '12 ct'),
-  '4':  meta('Aged cheddar cheese block, sharp flavor', 'Ireland', '2025-12-01', '2026-06-01', '8 oz'),
-  '5':  meta('Creamy Greek yogurt, plain', 'Greece', '2026-02-15', '2026-03-15', '6 oz'),
-  '9':  meta('Unsalted butter, European style', 'France', '2026-01-10', '2026-07-10', '8 oz'),
-  '10': meta('Heavy whipping cream, ultra-pasteurized', 'USA', '2026-02-22', '2026-03-22', '16 fl oz'),
-  '11': meta('Cultured sour cream, full fat', 'USA', '2026-02-19', '2026-03-19', '16 oz'),
-  '12': meta('Small curd cottage cheese, 4% milkfat', 'USA', '2026-02-17', '2026-03-10', '16 oz'),
-  '13': meta('Philadelphia-style cream cheese, original', 'USA', '2026-02-14', '2026-04-14', '8 oz'),
+  '1':  meta('Fresh whole milk, pasteurized and homogenized', 'USA', '2026-02-20', '2026-03-10', '1 Gallon', undefined, ZONES.DAIRY_COOLER, 2.10),
+  '3':  meta('Farm-fresh large eggs, grade A', 'USA', '2026-02-18', '2026-03-18', '12 ct', undefined, ZONES.DAIRY_COOLER, 2.40),
+  '4':  meta('Aged cheddar cheese block, sharp flavor', 'Ireland', '2025-12-01', '2026-06-01', '8 oz', undefined, ZONES.DAIRY_COOLER, 3.60),
+  '5':  meta('Creamy Greek yogurt, plain', 'Greece', '2026-02-15', '2026-03-15', '6 oz', undefined, ZONES.DAIRY_COOLER, 1.20),
+  '9':  meta('Unsalted butter, European style', 'France', '2026-01-10', '2026-07-10', '8 oz', undefined, ZONES.DAIRY_COOLER, 2.70),
+  '10': meta('Heavy whipping cream, ultra-pasteurized', 'USA', '2026-02-22', '2026-03-22', '16 fl oz', undefined, ZONES.DAIRY_COOLER, 2.30),
+  '11': meta('Cultured sour cream, full fat', 'USA', '2026-02-19', '2026-03-19', '16 oz', undefined, ZONES.DAIRY_COOLER, 1.50),
+  '12': meta('Small curd cottage cheese, 4% milkfat', 'USA', '2026-02-17', '2026-03-10', '16 oz', undefined, ZONES.DAIRY_COOLER, 1.90),
+  '13': meta('Philadelphia-style cream cheese, original', 'USA', '2026-02-14', '2026-04-14', '8 oz', undefined, ZONES.DAIRY_COOLER, 1.80),
 
   // Bakery
-  '2':  meta('Classic white sandwich bread, soft and fluffy', 'USA', '2026-02-23', '2026-03-02', '20 oz'),
-  '14': meta('Plain bagels, New York style, boiled and baked', 'USA', '2026-02-22', '2026-02-28', '6 ct'),
-  '15': meta('All-butter croissants, flaky and golden', 'France', '2026-02-23', '2026-02-27', '4 ct'),
-  '16': meta('Blueberry muffins, bakery fresh', 'USA', '2026-02-22', '2026-02-28', '4 ct'),
-  '17': meta('Traditional French baguette, crusty exterior', 'France', '2026-02-24', '2026-02-26', '10 oz'),
-  '18': meta('Soft dinner rolls, perfect for any meal', 'USA', '2026-02-23', '2026-03-01', '12 ct'),
-  '19': meta('Flour tortillas, soft and pliable', 'Mexico', '2026-02-20', '2026-04-20', '10 ct'),
-  '20': meta('Whole wheat pita bread pockets', 'Lebanon', '2026-02-21', '2026-03-07', '6 ct'),
+  '2':  meta('Classic white sandwich bread, soft and fluffy', 'USA', '2026-02-23', '2026-03-02', '20 oz', undefined, ZONES.BAKERY, 1.50),
+  '14': meta('Plain bagels, New York style, boiled and baked', 'USA', '2026-02-22', '2026-02-28', '6 ct', undefined, ZONES.BAKERY, 2.10),
+  '15': meta('All-butter croissants, flaky and golden', 'France', '2026-02-23', '2026-02-27', '4 ct', undefined, ZONES.BAKERY, 2.40),
+  '16': meta('Blueberry muffins, bakery fresh', 'USA', '2026-02-22', '2026-02-28', '4 ct', undefined, ZONES.BAKERY, 2.30),
+  '17': meta('Traditional French baguette, crusty exterior', 'France', '2026-02-24', '2026-02-26', '10 oz', undefined, ZONES.BAKERY, 1.80),
+  '18': meta('Soft dinner rolls, perfect for any meal', 'USA', '2026-02-23', '2026-03-01', '12 ct', undefined, ZONES.BAKERY, 1.70),
+  '19': meta('Flour tortillas, soft and pliable', 'Mexico', '2026-02-20', '2026-04-20', '10 ct', undefined, ZONES.BAKERY, 1.90),
+  '20': meta('Whole wheat pita bread pockets', 'Lebanon', '2026-02-21', '2026-03-07', '6 ct', undefined, ZONES.BAKERY, 1.70),
 
   // Produce
-  '6':  meta('Crisp Fuji apples, naturally sweet', 'USA', '2026-02-20', '2026-03-20', '1 lb'),
-  '21': meta('Premium Cavendish bananas, ripe and sweet', 'Ecuador', '2026-02-22', '2026-03-01', '1 bunch'),
-  '22': meta('Navel oranges, seedless and juicy', 'Spain', '2026-02-18', '2026-03-18', '1 lb'),
-  '23': meta('Vine-ripened tomatoes, rich flavor', 'Mexico', '2026-02-22', '2026-03-01', '1 lb'),
-  '24': meta('Iceberg lettuce head, fresh and crunchy', 'USA', '2026-02-23', '2026-03-02', '1 head'),
-  '25': meta('Organic whole carrots, sweet and tender', 'USA', '2026-02-20', '2026-03-20', '1 lb'),
-  '26': meta('Russet potatoes, ideal for baking', 'USA', '2026-02-15', '2026-03-15', '5 lb bag'),
-  '27': meta('Yellow onions, versatile and aromatic', 'USA', '2026-02-10', '2026-04-10', '3 lb bag'),
-  '28': meta('Hass avocados, creamy and ripe', 'Mexico', '2026-02-22', '2026-02-28', 'Each'),
-  '29': meta('Mixed bell peppers, red/yellow/green', 'Netherlands', '2026-02-21', '2026-03-03', '3 ct'),
-  '30': meta('English cucumbers, seedless', 'Canada', '2026-02-22', '2026-03-04', 'Each'),
-  '31': meta('Fresh broccoli crowns, nutrient-packed', 'USA', '2026-02-22', '2026-03-01', '1 lb'),
+  '6':  meta('Crisp Fuji apples, naturally sweet', 'USA', '2026-02-20', '2026-03-20', '1 lb', undefined, ZONES.PRODUCE, 0.90),
+  '21': meta('Premium Cavendish bananas, ripe and sweet', 'Ecuador', '2026-02-22', '2026-03-01', '1 bunch', undefined, ZONES.PRODUCE, 0.35),
+  '22': meta('Navel oranges, seedless and juicy', 'Spain', '2026-02-18', '2026-03-18', '1 lb', undefined, ZONES.PRODUCE, 0.72),
+  '23': meta('Vine-ripened tomatoes, rich flavor', 'Mexico', '2026-02-22', '2026-03-01', '1 lb', undefined, ZONES.PRODUCE, 1.20),
+  '24': meta('Iceberg lettuce head, fresh and crunchy', 'USA', '2026-02-23', '2026-03-02', '1 head', undefined, ZONES.PRODUCE, 1.10),
+  '25': meta('Organic whole carrots, sweet and tender', 'USA', '2026-02-20', '2026-03-20', '1 lb', undefined, ZONES.PRODUCE, 0.60),
+  '26': meta('Russet potatoes, ideal for baking', 'USA', '2026-02-15', '2026-03-15', '5 lb bag', undefined, ZONES.PRODUCE, 0.48),
+  '27': meta('Yellow onions, versatile and aromatic', 'USA', '2026-02-10', '2026-04-10', '3 lb bag', undefined, ZONES.PRODUCE, 0.54),
+  '28': meta('Hass avocados, creamy and ripe', 'Mexico', '2026-02-22', '2026-02-28', 'Each', undefined, ZONES.PRODUCE, 0.90),
+  '29': meta('Mixed bell peppers, red/yellow/green', 'Netherlands', '2026-02-21', '2026-03-03', '3 ct', undefined, ZONES.PRODUCE, 1.08),
+  '30': meta('English cucumbers, seedless', 'Canada', '2026-02-22', '2026-03-04', 'Each', undefined, ZONES.PRODUCE, 0.48),
+  '31': meta('Fresh broccoli crowns, nutrient-packed', 'USA', '2026-02-22', '2026-03-01', '1 lb', undefined, ZONES.PRODUCE, 1.20),
   '32': meta('Baby spinach leaves, pre-washed', 'USA', '2026-02-22', '2026-02-28', '5 oz'),
   '33': meta('White button mushrooms, sliced', 'USA', '2026-02-22', '2026-02-28', '8 oz'),
 
