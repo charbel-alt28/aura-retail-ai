@@ -291,6 +291,57 @@ export type Database = {
         }
         Relationships: []
       }
+      wastage_logs: {
+        Row: {
+          category: string | null
+          created_at: string
+          date_discarded: string
+          expiry_date: string | null
+          id: string
+          logged_by: string | null
+          notes: string | null
+          product_id: string
+          product_name: string
+          quantity_discarded: number
+          reason: string
+          sku: string
+          total_value_lost: number
+          unit_value: number
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          date_discarded?: string
+          expiry_date?: string | null
+          id?: string
+          logged_by?: string | null
+          notes?: string | null
+          product_id: string
+          product_name: string
+          quantity_discarded?: number
+          reason?: string
+          sku: string
+          total_value_lost?: number
+          unit_value?: number
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          date_discarded?: string
+          expiry_date?: string | null
+          id?: string
+          logged_by?: string | null
+          notes?: string | null
+          product_id?: string
+          product_name?: string
+          quantity_discarded?: number
+          reason?: string
+          sku?: string
+          total_value_lost?: number
+          unit_value?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
