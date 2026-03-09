@@ -21,6 +21,14 @@ const agents = [
     color: 'accent'
   },
   {
+    id: 'expiry',
+    name: 'Expiry Agent',
+    icon: Zap,
+    description: 'Auto-expiry detection & wastage logging',
+    status: 'active',
+    color: 'warning'
+  },
+  {
     id: 'customer',
     name: 'Customer Service',
     icon: Users,
@@ -68,7 +76,8 @@ export function AgentStatusPanel() {
               "relative p-2 rounded-lg",
               agent.color === 'primary' && "bg-primary/10 text-primary",
               agent.color === 'accent' && "bg-accent/10 text-accent",
-              agent.color === 'success' && "bg-success/10 text-success"
+              agent.color === 'success' && "bg-success/10 text-success",
+              agent.color === 'warning' && "bg-warning/10 text-warning"
             )}>
               <agent.icon className="h-5 w-5" />
               <motion.div
@@ -76,7 +85,8 @@ export function AgentStatusPanel() {
                   "absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full",
                   agent.color === 'primary' && "bg-primary",
                   agent.color === 'accent' && "bg-accent",
-                  agent.color === 'success' && "bg-success"
+                  agent.color === 'success' && "bg-success",
+                  agent.color === 'warning' && "bg-warning"
                 )}
                 animate={{
                   scale: [1, 1.2, 1],
@@ -99,7 +109,8 @@ export function AgentStatusPanel() {
                   "h-3 w-3",
                   agent.color === 'primary' && "text-primary",
                   agent.color === 'accent' && "text-accent",
-                  agent.color === 'success' && "text-success"
+                  agent.color === 'success' && "text-success",
+                  agent.color === 'warning' && "text-warning"
                 )} />
               </div>
               <p className="text-xs text-muted-foreground truncate">
