@@ -21,6 +21,14 @@ const agents = [
     color: 'accent'
   },
   {
+    id: 'expiry',
+    name: 'Expiry Agent',
+    icon: Zap,
+    description: 'Auto-expiry detection & wastage logging',
+    status: 'active',
+    color: 'warning'
+  },
+  {
     id: 'customer',
     name: 'Customer Service',
     icon: Users,
