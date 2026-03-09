@@ -109,7 +109,8 @@ export function AgentStatusPanel() {
                   "h-3 w-3",
                   agent.color === 'primary' && "text-primary",
                   agent.color === 'accent' && "text-accent",
-                  agent.color === 'success' && "text-success"
+                  agent.color === 'success' && "text-success",
+                  agent.color === 'warning' && "text-warning"
                 )} />
               </div>
               <p className="text-xs text-muted-foreground truncate">
