@@ -76,7 +76,8 @@ export function AgentStatusPanel() {
               "relative p-2 rounded-lg",
               agent.color === 'primary' && "bg-primary/10 text-primary",
               agent.color === 'accent' && "bg-accent/10 text-accent",
-              agent.color === 'success' && "bg-success/10 text-success"
+              agent.color === 'success' && "bg-success/10 text-success",
+              agent.color === 'warning' && "bg-warning/10 text-warning"
             )}>
               <agent.icon className="h-5 w-5" />
               <motion.div
