@@ -101,7 +101,50 @@ export function SecurityDashboard() {
 
   if (role !== 'admin') return null;
 
-  // removed - moved above early return
+  if (!authenticated) {
+    return (
+      <div className="glow-card p-6 space-y-4">
+        <div className="flex items-center gap-2 justify-center">
+          <Lock className="h-5 w-5 text-warning" />
+          <h2 className="font-display text-sm tracking-wider text-foreground">SECURITY CLEARANCE REQUIRED</h2>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          Re-authenticate with admin credentials to access the Security Center.
+        </p>
+        <form onSubmit={handleSecurityAuth} className="space-y-3 max-w-xs mx-auto">
+          <div>
+            <label className="text-[10px] font-display tracking-wider text-muted-foreground">EMAIL</label>
+            <input
+              type="email"
+              value={authEmail}
+              onChange={e => setAuthEmail(e.target.value)}
+              required
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              placeholder="admin@example.com"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-display tracking-wider text-muted-foreground">PASSWORD</label>
+            <input
+              type="password"
+              value={authPassword}
+              onChange={e => setAuthPassword(e.target.value)}
+              required
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              placeholder="••••••••"
+            />
+          </div>
+          {authError && (
+            <p className="text-[10px] text-destructive font-medium">{authError}</p>
+          )}
+          <Button type="submit" className="w-full font-display text-xs tracking-wider" disabled={authLoading}>
+            {authLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin mr-2" /> : <Shield className="h-3.5 w-3.5 mr-2" />}
+            {authLoading ? 'VERIFYING...' : 'AUTHENTICATE'}
+          </Button>
+        </form>
+      </div>
+    );
+  }
 
   const resolveEvent = async (id: string) => {
     await supabaseAny.from('security_events').update({ resolved: true }).eq('id', id);
