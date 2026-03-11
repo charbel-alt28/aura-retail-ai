@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 
 export function CommandCenter() {
   const { isSimulating, runDemoScenario, products } = useHypermarketStore();
-  const { loading, results, setResults, runAction } = useAIAutomation();
+  const { loading, results, setResults, clearResults, runAction } = useAIAutomation();
   const { hasPermission } = useRBAC();
   const [autoRestock, setAutoRestock] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ title: string; description: string; onConfirm: () => void } | null>(null);
@@ -168,7 +168,7 @@ export function CommandCenter() {
         </div>
       </div>
 
-      <AIResultsPanel result={results} onClose={() => setResults(null)} />
+      <AIResultsPanel result={results} onClose={clearResults} />
 
       <ConfirmActionDialog
         open={!!confirmAction}

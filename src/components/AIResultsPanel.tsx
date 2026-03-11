@@ -398,18 +398,22 @@ export function AIResultsPanel({ result, onClose }: AIResultsPanelProps) {
               </Section>
             )}
 
-            {/* Seasonal */}
-            {r.seasonal?.length > 0 && (
-              <Section title="Seasonal Strategies">
-                <ul className="space-y-1">
-                  {r.seasonal.map((s: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2 text-foreground/80 bg-muted/20 rounded-md px-3 py-2">
-                      <span className="text-warning mt-0.5">•</span>
-                      <span className="leading-relaxed">{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Section>
+
+            {/* Raw/fallback content */}
+            {r.raw && !r.summary && (
+              <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
+                <p className="text-foreground/90 leading-relaxed text-[13px] whitespace-pre-wrap">{JSON.stringify(r, null, 2)}</p>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!r.summary && !r.raw && !r.anomalies?.length && !r.priceAdjustments?.length && 
+             !r.restockAlerts?.length && !r.recommendations?.length && !r.weeklyForecast?.length &&
+             !r.bundles?.length && !r.markdowns?.length && !r.upsells?.length && !r.seasonal?.length && (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No detailed results available for this analysis.</p>
+              </div>
             )}
           </div>
         </ScrollArea>

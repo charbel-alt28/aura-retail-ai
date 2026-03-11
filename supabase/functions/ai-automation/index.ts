@@ -1,11 +1,42 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://id-preview--0e11076a-52d0-4e37-8636-cd7dbad7fa70.lovable.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
+
+// Simple in-memory rate limiter (per-user, resets on cold start)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // max requests
+const RATE_WINDOW_MS = 60_000; // per minute
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(userId);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
+const VALID_ACTIONS = ["optimize", "forecast", "anomaly", "recommendations"] as const;
+type AIAction = (typeof VALID_ACTIONS)[number];
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -23,15 +54,21 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid authentication" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
+
+    // === Rate limiting ===
+    if (!checkRateLimit(userId)) {
+      return new Response(JSON.stringify({ error: "Too many AI requests. Please wait a moment before trying again." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // === Authorization: admin or operator only ===
     const { data: roleData } = await supabaseClient.rpc("get_user_role", { _user_id: userId });
@@ -41,12 +78,40 @@ Deno.serve(async (req) => {
       });
     }
 
-    // === Process request ===
-    const { action, products } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    // === Validate request body ===
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const systemPrompts: Record<string, string> = {
+    const { action, products } = body;
+
+    if (!action || !VALID_ACTIONS.includes(action)) {
+      return new Response(JSON.stringify({ error: `Invalid action. Must be one of: ${VALID_ACTIONS.join(", ")}` }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!Array.isArray(products) || products.length === 0) {
+      return new Response(JSON.stringify({ error: "Products array is required and must not be empty" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (products.length > 500) {
+      return new Response(JSON.stringify({ error: "Too many products. Maximum 500 per request." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("AI service is not configured. Please contact support.");
+
+    const systemPrompts: Record<AIAction, string> = {
       optimize: `You are an AI hypermarket optimization engine. Given the product inventory data, analyze and provide:
 1. Which products need price adjustments and why (demand-based)
 2. Which products need restocking urgently
@@ -101,19 +166,19 @@ Respond in JSON format:
 }`
     };
 
-    const systemPrompt = systemPrompts[action];
-    if (!systemPrompt) throw new Error(`Unknown action: ${action}`);
+    const systemPrompt = systemPrompts[action as AIAction];
 
+    // Sanitize product data — only send safe fields
     const productSummary = products.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      stock: p.stock,
-      reorderLevel: p.reorderLevel,
-      basePrice: p.basePrice,
-      currentPrice: p.currentPrice,
-      demandLevel: p.demandLevel,
-      demandForecast: p.demandForecast,
-      category: p.category
+      id: typeof p.id === "string" ? p.id.slice(0, 50) : String(p.id).slice(0, 50),
+      name: typeof p.name === "string" ? p.name.slice(0, 100) : "Unknown",
+      stock: Number(p.stock) || 0,
+      reorderLevel: Number(p.reorderLevel) || 0,
+      basePrice: Number(p.basePrice) || 0,
+      currentPrice: Number(p.currentPrice) || 0,
+      demandLevel: ["low", "medium", "high"].includes(p.demandLevel) ? p.demandLevel : "medium",
+      demandForecast: Number(p.demandForecast) || 0,
+      category: typeof p.category === "string" ? p.category.slice(0, 50) : "uncategorized",
     }));
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -134,7 +199,7 @@ Respond in JSON format:
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
+        return new Response(JSON.stringify({ error: "AI rate limit exceeded. Please try again in a moment." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -145,13 +210,19 @@ Respond in JSON format:
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI service temporarily unavailable." }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: "AI service temporarily unavailable. Please try again later." }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: "AI returned an empty response. Please try again." }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let parsed;
     try {
@@ -160,12 +231,26 @@ Respond in JSON format:
       parsed = { summary: content, raw: true };
     }
 
+    // Log successful AI action to agent_logs
+    const serviceClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    await serviceClient.from("agent_logs").insert({
+      agent_type: "ai_automation",
+      action: `AI_${action.toUpperCase()}`,
+      status: "success",
+      details: {
+        userId,
+        action,
+        productsAnalyzed: productSummary.length,
+        timestamp: new Date().toISOString(),
+      },
+    }).then(({ error }) => { if (error) console.error("Failed to log AI action:", error); });
+
     return new Response(JSON.stringify({ action, result: parsed }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("ai-automation error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "An unexpected error occurred" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
