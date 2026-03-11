@@ -83,6 +83,10 @@ const Index = () => {
                     <Users className="h-4 w-4 mr-2" />
                     Service
                   </TabsTrigger>
+                  <TabsTrigger value="analytics" className="font-display text-xs data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Analytics
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="inventory" className="mt-0"><InventoryDashboard /></TabsContent>
