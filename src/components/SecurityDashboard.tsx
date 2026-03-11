@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, ShieldAlert, ShieldCheck, AlertTriangle, Lock, Activity,
@@ -53,6 +53,40 @@ export function SecurityDashboard() {
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [failedAttempts, setFailedAttempts] = useState<FailedAttempt[]>([]);
+  const [sessionRemaining, setSessionRemaining] = useState(300); // 5 min in seconds
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastActivity = useRef(Date.now());
+
+  const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+  const resetInactivityTimer = useCallback(() => {
+    lastActivity.current = Date.now();
+  }, []);
+
+  // Auto-lock after 5 min inactivity
+  useEffect(() => {
+    if (!authenticated) return;
+
+    const checkInactivity = setInterval(() => {
+      const elapsed = Date.now() - lastActivity.current;
+      const remaining = Math.max(0, Math.ceil((LOCK_TIMEOUT - elapsed) / 1000));
+      setSessionRemaining(remaining);
+      if (elapsed >= LOCK_TIMEOUT) {
+        setAuthenticated(false);
+        setAuthEmail('');
+        setAuthPassword('');
+        setSessionRemaining(300);
+        toast.warning('Security panel locked due to inactivity');
+      }
+    }, 1000);
+
+    return () => clearInterval(checkInactivity);
+  }, [authenticated]);
+
+  // Track mouse/keyboard activity within the security panel
+  const handlePanelActivity = useCallback(() => {
+    if (authenticated) resetInactivityTimer();
+  }, [authenticated, resetInactivityTimer]);
 
   const handleSecurityAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,17 +205,28 @@ export function SecurityDashboard() {
 
   const severityColor = (s: string) => s === 'critical' ? 'text-destructive border-destructive/50' : s === 'high' ? 'text-warning border-warning/50' : s === 'medium' ? 'text-accent border-accent/50' : 'text-muted-foreground border-border';
 
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
   return (
-    <div className="glow-card p-4 space-y-4">
+    <div className="glow-card p-4 space-y-4" onMouseMove={handlePanelActivity} onKeyDown={handlePanelActivity} onClick={handlePanelActivity}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <h2 className="font-display text-sm tracking-wider text-foreground">SECURITY CENTER</h2>
         </div>
-        <Button variant="ghost" size="sm" onClick={fetchAll} disabled={loading}>
-          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-1 text-[9px] font-display tracking-wider px-2 py-0.5 rounded border",
+            sessionRemaining <= 60 ? "text-destructive border-destructive/50 bg-destructive/10 animate-pulse" :
+            sessionRemaining <= 120 ? "text-warning border-warning/50 bg-warning/10" :
+            "text-muted-foreground border-border/50")}>
+            <Lock className="h-2.5 w-2.5" />
+            {formatTime(sessionRemaining)}
+          </div>
+          <Button variant="ghost" size="sm" onClick={fetchAll} disabled={loading}>
+            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Threat Level Banner */}
