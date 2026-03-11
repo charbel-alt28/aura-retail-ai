@@ -324,7 +324,7 @@ export default function AuthPage() {
                   </div>
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button type="submit" disabled={loading} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                <Button type="submit" disabled={loading || !isPasswordStrong(form.password)} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'REGISTER ACCOUNT'}
                 </Button>
                 <div className="text-center text-xs">
