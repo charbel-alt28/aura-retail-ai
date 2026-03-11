@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { PasswordStrengthMeter, isPasswordStrong } from '@/components/PasswordStrengthMeter';
+import { supabase } from '@/integrations/supabase/client';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabaseAny = supabase as any;
 
 type Mode = 'login' | 'signup' | 'forgot';
 
@@ -18,7 +23,12 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   displayName: z.string().trim().min(2, 'Name must be at least 2 characters').max(50, 'Name too long'),
   email: z.string().trim().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Must contain an uppercase letter')
+    .regex(/[a-z]/, 'Must contain a lowercase letter')
+    .regex(/\d/, 'Must contain a number')
+    .regex(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, 'Must contain a special character'),
   confirmPassword: z.string(),
 }).refine(d => d.password === d.confirmPassword, {
   message: "Passwords don't match",
@@ -76,15 +86,22 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
+      // Log failed attempt to database
+      try {
+        await supabaseAny.from('failed_login_attempts').insert([{
+          email: form.email,
+          user_agent: navigator.userAgent,
+        }]);
+      } catch { /* ignore logging errors */ }
+
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= 5) {
-        const lockTime = Date.now() + 30_000; // 30s lockout
+        const lockTime = Date.now() + 60_000; // 60s lockout
         setLockedUntil(lockTime);
         setAttempts(0);
-        toast.error('Too many failed attempts. Locked for 30 seconds.');
-        // Auto-unlock
-        setTimeout(() => setLockedUntil(null), 30_000);
+        toast.error('Too many failed attempts. Account locked for 60 seconds.');
+        setTimeout(() => setLockedUntil(null), 60_000);
       } else {
         toast.error(`Authentication failed: ${error.message}`);
       }
@@ -294,6 +311,7 @@ export default function AuthPage() {
                     </button>
                   </div>
                   {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                  <PasswordStrengthMeter password={form.password} />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs tracking-wider uppercase text-muted-foreground">Confirm Password</Label>
@@ -306,7 +324,7 @@ export default function AuthPage() {
                   </div>
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button type="submit" disabled={loading} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                <Button type="submit" disabled={loading || !isPasswordStrong(form.password)} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'REGISTER ACCOUNT'}
                 </Button>
                 <div className="text-center text-xs">

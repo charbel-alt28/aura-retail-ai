@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.expiry-check]
 verify_jwt = false
+
+[functions.security-scan]
+verify_jwt = false
