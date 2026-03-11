@@ -66,7 +66,7 @@ const Index = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-6">
             <div className="glow-card p-4">
               <Tabs defaultValue="inventory" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-4 bg-muted/30">
+                <TabsList className="grid w-full grid-cols-5 mb-4 bg-muted/30">
                   <TabsTrigger value="inventory" className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     <Box className="h-4 w-4 mr-2" />
                     Inventory
