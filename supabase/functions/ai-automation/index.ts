@@ -128,11 +128,11 @@ Respond in JSON format:
   "summary": string
 }`,
 
-      forecast: `You are a demand forecasting AI for a hypermarket. Given the product data with current stock levels, demand levels, and pricing, predict next week's demand. 
+      forecast: `You are a demand forecasting AI for a hypermarket. Given the product data with current stock levels, demand levels, pricing, AND active pricing rules, predict next week's demand. Factor in how active pricing rules (discounts, promotions, surge pricing) will influence demand patterns.
 
 Respond in JSON format:
 {
-  "weeklyForecast": [{"productId": string, "name": string, "predictedDemand": number, "confidence": number, "trend": "up"|"stable"|"down"}],
+  "weeklyForecast": [{"productId": string, "name": string, "predictedDemand": number, "confidence": number, "trend": "up"|"stable"|"down", "pricingRuleImpact": string}],
   "topMovers": [{"name": string, "change": string}],
   "summary": string,
   "confidenceScore": number
