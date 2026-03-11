@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { PasswordStrengthMeter, isPasswordStrong } from '@/components/PasswordStrengthMeter';
+import { supabase } from '@/integrations/supabase/client';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabaseAny = supabase as any;
 
 type Mode = 'login' | 'signup' | 'forgot';
 
@@ -18,7 +23,12 @@ const loginSchema = z.object({
 const signupSchema = z.object({
   displayName: z.string().trim().min(2, 'Name must be at least 2 characters').max(50, 'Name too long'),
   email: z.string().trim().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Must contain an uppercase letter')
+    .regex(/[a-z]/, 'Must contain a lowercase letter')
+    .regex(/\d/, 'Must contain a number')
+    .regex(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, 'Must contain a special character'),
   confirmPassword: z.string(),
 }).refine(d => d.password === d.confirmPassword, {
   message: "Passwords don't match",
