@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 import { Header } from '@/components/Header';
 import { AgentStatusPanel } from '@/components/AgentStatusPanel';
 import { InventoryDashboard } from '@/components/InventoryDashboard';
