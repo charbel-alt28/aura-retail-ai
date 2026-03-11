@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.security-scan]
 verify_jwt = false
+
+[functions.ops-assistant]
+verify_jwt = false
