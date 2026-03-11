@@ -168,6 +168,29 @@ Respond in JSON format:
 
     const systemPrompt = systemPrompts[action as AIAction];
 
+    // Fetch active pricing rules from the database
+    const serviceClient2 = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: pricingRules } = await serviceClient2
+      .from("pricing_rules")
+      .select("*")
+      .eq("is_active", true)
+      .order("priority", { ascending: false });
+
+    const rulesContext = pricingRules && pricingRules.length > 0
+      ? `\n\nACTIVE PRICING RULES (apply these when making recommendations):\n${JSON.stringify(
+          pricingRules.map((r: any) => ({
+            name: r.name,
+            type: r.rule_type,
+            adjustmentType: r.adjustment_type,
+            adjustmentValue: r.adjustment_value,
+            conditions: r.conditions,
+            priority: r.priority,
+          })),
+          null,
+          2
+        )}`
+      : "";
+
     // Sanitize product data — only send safe fields
     const productSummary = products.map((p: any) => ({
       id: typeof p.id === "string" ? p.id.slice(0, 50) : String(p.id).slice(0, 50),
