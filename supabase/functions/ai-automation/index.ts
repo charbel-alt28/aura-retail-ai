@@ -138,30 +138,33 @@ Respond in JSON format:
   "confidenceScore": number
 }`,
 
-      anomaly: `You are an anomaly detection AI for a hypermarket. Analyze the product data for unusual patterns:
-- Prices significantly above/below base prices
-- Stock levels that seem abnormal
+      anomaly: `You are an anomaly detection AI for a hypermarket. You will receive product data AND active pricing rules. Analyze for unusual patterns:
+- Prices that violate active pricing rules (e.g., a high-demand item NOT marked up per the rule)
+- Stock levels that seem abnormal given the rules in place
 - Demand mismatches (high demand + low stock or vice versa)
+- Rules that conflict with each other
 - Any suspicious patterns
 
 Respond in JSON format:
 {
-  "anomalies": [{"productId": string, "name": string, "type": "price"|"stock"|"demand"|"pattern", "severity": "high"|"medium"|"low", "description": string}],
+  "anomalies": [{"productId": string, "name": string, "type": "price"|"stock"|"demand"|"pattern"|"rule_violation", "severity": "high"|"medium"|"low", "description": string, "relatedRule": string}],
   "riskScore": number,
   "summary": string
 }`,
 
-      recommendations: `You are a smart recommendations AI for a hypermarket. Based on the product data, suggest:
-1. Bundle promotions (products that go well together)
-2. Markdown candidates (slow movers)
-3. Premium upsell opportunities
-4. Seasonal strategies
+      recommendations: `You are a smart recommendations AI for a hypermarket. Based on the product data AND active pricing rules, suggest:
+1. Bundle promotions (products that go well together, considering active discounts)
+2. Markdown candidates (slow movers that aren't already covered by rules)
+3. Premium upsell opportunities (leveraging surge pricing rules)
+4. Rule optimization suggestions (which rules to adjust, add, or deactivate)
+5. Seasonal strategies
 
 Respond in JSON format:
 {
   "bundles": [{"products": [string], "discount": string, "reason": string}],
-  "markdowns": [{"name": string, "suggestedDiscount": string, "reason": string}],
+  "markdowns": [{"name": string, "suggestedDiscount": string, "reason": string, "existingRule": string}],
   "upsells": [{"name": string, "strategy": string}],
+  "ruleOptimizations": [{"ruleName": string, "suggestion": string, "expectedImpact": string}],
   "seasonal": [string],
   "summary": string
 }`
