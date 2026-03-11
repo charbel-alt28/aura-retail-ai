@@ -30,87 +30,83 @@ export function ProductDetailDialog({ open, onOpenChange, product }: ProductDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-card border-border max-w-md p-0 overflow-hidden">
-        {/* Header with image */}
-        <div className="relative h-40 bg-muted/30 flex items-center justify-center overflow-hidden">
-          {image ? (
-            <img src={image} alt={product.name} className="w-full h-full object-cover opacity-90" />
-          ) : (
-            <Package className="h-16 w-16 text-muted-foreground" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-          <div className="absolute bottom-3 left-4 right-4">
+      <DialogContent className="bg-card border-border max-w-2xl p-0 overflow-hidden">
+        {/* Top section: Image + Description side by side */}
+        <div className="flex flex-col sm:flex-row">
+          {/* Full image */}
+          <div className="sm:w-1/2 w-full bg-muted/20 flex items-center justify-center p-4 min-h-[240px]">
+            {image ? (
+              <img src={image} alt={product.name} className="w-full h-auto max-h-[320px] object-contain rounded-lg" />
+            ) : (
+              <Package className="h-16 w-16 text-muted-foreground" />
+            )}
+          </div>
+
+          {/* Description & header info */}
+          <div className="sm:w-1/2 w-full p-5 flex flex-col justify-center gap-3">
             <DialogHeader>
-              <DialogTitle className="font-display text-xl font-bold text-foreground tracking-wide drop-shadow-md">
+              <DialogTitle className="font-display text-xl font-bold text-foreground tracking-wide">
                 {product.name}
               </DialogTitle>
             </DialogHeader>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-semibold text-foreground/80">{product.category}</span>
-              <span className="text-xs text-foreground/50">•</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-muted-foreground">{product.category}</span>
+              <span className="text-xs text-muted-foreground/50">•</span>
               <span className="text-base font-display font-bold text-primary">${product.currentPrice.toFixed(2)}</span>
               {meta?.weight && (
                 <>
-                  <span className="text-xs text-foreground/50">•</span>
-                  <span className="text-xs font-medium text-foreground/70">{meta.weight}</span>
+                  <span className="text-xs text-muted-foreground/50">•</span>
+                  <span className="text-xs font-medium text-muted-foreground">{meta.weight}</span>
                 </>
               )}
             </div>
-          </div>
-        </div>
-
-        <div className="p-4 space-y-4">
-          {/* Description */}
-          {meta && (
-            <>
+            {meta && (
               <div className="flex items-start gap-2.5 bg-muted/20 border border-border/50 rounded-lg p-3">
                 <FileText className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <p className="text-sm font-medium text-foreground leading-relaxed">{meta.description}</p>
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* Info grid */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Origin</span>
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{meta.origin}</p>
+        {/* Bottom details */}
+        <div className="p-4 pt-0 space-y-3">
+          {meta && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Origin</span>
                 </div>
-
-                <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Weight className="h-3.5 w-3.5 text-accent" />
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Size</span>
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{meta.weight || '—'}</p>
-                </div>
-
-                <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-success" />
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Produced</span>
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{formatDate(meta.dop)}</p>
-                </div>
-
-                <div className={cn(
-                  "rounded-lg border p-3",
-                  isExpiringSoon ? "bg-destructive/10 border-destructive/30" : "bg-muted/20 border-border/50"
-                )}>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Clock className={cn("h-3.5 w-3.5", isExpiringSoon ? "text-destructive" : "text-warning")} />
-                    <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Expires</span>
-                  </div>
-                  <p className={cn(
-                    "text-sm font-bold",
-                    isExpiringSoon ? "text-destructive" : "text-foreground"
-                  )}>
-                    {formatDate(meta.doe)}
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-foreground">{meta.origin}</p>
               </div>
-            </>
+              <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Weight className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Size</span>
+                </div>
+                <p className="text-sm font-bold text-foreground">{meta.weight || '—'}</p>
+              </div>
+              <div className="rounded-lg bg-muted/20 border border-border/50 p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-success" />
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Produced</span>
+                </div>
+                <p className="text-sm font-bold text-foreground">{formatDate(meta.dop)}</p>
+              </div>
+              <div className={cn(
+                "rounded-lg border p-3",
+                isExpiringSoon ? "bg-destructive/10 border-destructive/30" : "bg-muted/20 border-border/50"
+              )}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Clock className={cn("h-3.5 w-3.5", isExpiringSoon ? "text-destructive" : "text-warning")} />
+                  <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Expires</span>
+                </div>
+                <p className={cn("text-sm font-bold", isExpiringSoon ? "text-destructive" : "text-foreground")}>
+                  {formatDate(meta.doe)}
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Stock info */}
