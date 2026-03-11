@@ -44,10 +44,40 @@ interface FailedAttempt {
 export function SecurityDashboard() {
   const { role } = useRBAC();
   const [loading, setLoading] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'logins' | 'audit'>('overview');
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [failedAttempts, setFailedAttempts] = useState<FailedAttempt[]>([]);
+
+  const handleSecurityAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: authPassword,
+      });
+      if (error) throw error;
+      // Verify admin role
+      const { data: roleData } = await supabaseAny.from('user_roles').select('role').eq('user_id', user?.id).eq('role', 'admin').single();
+      if (!roleData) {
+        setAuthError('Access denied. Admin privileges required.');
+        return;
+      }
+      setAuthenticated(true);
+      toast.success('Security panel unlocked');
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'Authentication failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
