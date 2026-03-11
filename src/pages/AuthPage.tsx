@@ -86,15 +86,22 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
+      // Log failed attempt to database
+      try {
+        await supabaseAny.from('failed_login_attempts').insert([{
+          email: form.email,
+          user_agent: navigator.userAgent,
+        }]);
+      } catch { /* ignore logging errors */ }
+
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= 5) {
-        const lockTime = Date.now() + 30_000; // 30s lockout
+        const lockTime = Date.now() + 60_000; // 60s lockout
         setLockedUntil(lockTime);
         setAttempts(0);
-        toast.error('Too many failed attempts. Locked for 30 seconds.');
-        // Auto-unlock
-        setTimeout(() => setLockedUntil(null), 30_000);
+        toast.error('Too many failed attempts. Account locked for 60 seconds.');
+        setTimeout(() => setLockedUntil(null), 60_000);
       } else {
         toast.error(`Authentication failed: ${error.message}`);
       }
