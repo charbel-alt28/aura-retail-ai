@@ -112,18 +112,19 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("AI service is not configured. Please contact support.");
 
     const systemPrompts: Record<AIAction, string> = {
-      optimize: `You are an AI hypermarket optimization engine. Given the product inventory data, analyze and provide:
-1. Which products need price adjustments and why (demand-based)
+      optimize: `You are an AI hypermarket optimization engine. You will receive product inventory data AND active pricing rules. You MUST apply the pricing rules to generate price adjustment suggestions. For each rule, check if the product matches the rule's conditions (demand_level, category, stock thresholds) and apply the specified adjustment. Given the product inventory data, analyze and provide:
+1. Which products need price adjustments based on the ACTIVE PRICING RULES and why
 2. Which products need restocking urgently
 3. Overall optimization score (0-100)
-4. 3-5 specific actionable recommendations
+4. 3-5 specific actionable recommendations referencing the rules applied
 
 Respond in JSON format:
 {
   "score": number,
-  "priceAdjustments": [{"productId": string, "name": string, "currentPrice": number, "suggestedPrice": number, "reason": string}],
+  "priceAdjustments": [{"productId": string, "name": string, "currentPrice": number, "suggestedPrice": number, "reason": string, "ruleApplied": string}],
   "restockAlerts": [{"productId": string, "name": string, "currentStock": number, "suggestedOrder": number, "urgency": "critical"|"warning"|"low"}],
   "recommendations": [string],
+  "rulesApplied": [{"ruleName": string, "productsAffected": number, "totalImpact": string}],
   "summary": string
 }`,
 
