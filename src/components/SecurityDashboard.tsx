@@ -53,6 +53,40 @@ export function SecurityDashboard() {
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [failedAttempts, setFailedAttempts] = useState<FailedAttempt[]>([]);
+  const [sessionRemaining, setSessionRemaining] = useState(300); // 5 min in seconds
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastActivity = useRef(Date.now());
+
+  const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
+  const resetInactivityTimer = useCallback(() => {
+    lastActivity.current = Date.now();
+  }, []);
+
+  // Auto-lock after 5 min inactivity
+  useEffect(() => {
+    if (!authenticated) return;
+
+    const checkInactivity = setInterval(() => {
+      const elapsed = Date.now() - lastActivity.current;
+      const remaining = Math.max(0, Math.ceil((LOCK_TIMEOUT - elapsed) / 1000));
+      setSessionRemaining(remaining);
+      if (elapsed >= LOCK_TIMEOUT) {
+        setAuthenticated(false);
+        setAuthEmail('');
+        setAuthPassword('');
+        setSessionRemaining(300);
+        toast.warning('Security panel locked due to inactivity');
+      }
+    }, 1000);
+
+    return () => clearInterval(checkInactivity);
+  }, [authenticated]);
+
+  // Track mouse/keyboard activity within the security panel
+  const handlePanelActivity = useCallback(() => {
+    if (authenticated) resetInactivityTimer();
+  }, [authenticated, resetInactivityTimer]);
 
   const handleSecurityAuth = async (e: React.FormEvent) => {
     e.preventDefault();
