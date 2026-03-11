@@ -58,6 +58,8 @@ const Index = () => {
             <PricingSalesControl />
             <AdminSystemControls />
             <AgentStatusPanel />
+            <ExportReports />
+            <UserManagementPanel />
             {role === 'admin' && <SecurityDashboard />}
           </motion.aside>
           
