@@ -49,6 +49,26 @@ export function SecurityDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [failedAttempts, setFailedAttempts] = useState<FailedAttempt[]>([]);
 
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [eventsRes, auditRes, failedRes] = await Promise.all([
+        supabaseAny.from('security_events').select('*').order('created_at', { ascending: false }).limit(50),
+        supabaseAny.from('auth_audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
+        supabaseAny.from('failed_login_attempts').select('*').order('attempted_at', { ascending: false }).limit(50),
+      ]);
+      setSecurityEvents(eventsRes.data || []);
+      setAuditLogs(auditRes.data || []);
+      setFailedAttempts(failedRes.data || []);
+    } catch {
+      toast.error('Failed to load security data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
   if (role !== 'admin') return null;
 
   const fetchAll = useCallback(async () => {
