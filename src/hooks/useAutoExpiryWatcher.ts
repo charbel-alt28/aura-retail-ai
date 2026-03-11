@@ -23,7 +23,7 @@ export function useAutoExpiryWatcher() {
   const createWastageLog = useCreateWastageLog();
   const queryClient = useQueryClient();
   const processedRef = useRef<Set<string>>(new Set());
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const scanAndFlag = useCallback(async () => {
     const now = new Date();
