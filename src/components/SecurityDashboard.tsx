@@ -229,7 +229,7 @@ export function SecurityDashboard() {
       </div>
 
       {/* Tab Content */}
-      <ScrollArea className="max-h-[350px]">
+      <ScrollArea className="max-h-[750px]">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
