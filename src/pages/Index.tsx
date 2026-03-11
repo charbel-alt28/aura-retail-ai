@@ -16,7 +16,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { useRBAC } from '@/hooks/useRBAC';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Box, TrendingUp, Users, CalendarX, ShieldCheck } from 'lucide-react';
+import { Box, TrendingUp, Users, CalendarX } from 'lucide-react';
 import { ExpiryWastageDashboard } from '@/components/ExpiryWastageDashboard';
 import { useAutoExpiryWatcher } from '@/hooks/useAutoExpiryWatcher';
 
