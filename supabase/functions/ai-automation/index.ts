@@ -112,61 +112,88 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("AI service is not configured. Please contact support.");
 
     const systemPrompts: Record<AIAction, string> = {
-      optimize: `You are an AI hypermarket optimization engine. Given the product inventory data, analyze and provide:
-1. Which products need price adjustments and why (demand-based)
+      optimize: `You are an AI hypermarket optimization engine. You will receive product inventory data AND active pricing rules. You MUST apply the pricing rules to generate price adjustment suggestions. For each rule, check if the product matches the rule's conditions (demand_level, category, stock thresholds) and apply the specified adjustment. Given the product inventory data, analyze and provide:
+1. Which products need price adjustments based on the ACTIVE PRICING RULES and why
 2. Which products need restocking urgently
 3. Overall optimization score (0-100)
-4. 3-5 specific actionable recommendations
+4. 3-5 specific actionable recommendations referencing the rules applied
 
 Respond in JSON format:
 {
   "score": number,
-  "priceAdjustments": [{"productId": string, "name": string, "currentPrice": number, "suggestedPrice": number, "reason": string}],
+  "priceAdjustments": [{"productId": string, "name": string, "currentPrice": number, "suggestedPrice": number, "reason": string, "ruleApplied": string}],
   "restockAlerts": [{"productId": string, "name": string, "currentStock": number, "suggestedOrder": number, "urgency": "critical"|"warning"|"low"}],
   "recommendations": [string],
+  "rulesApplied": [{"ruleName": string, "productsAffected": number, "totalImpact": string}],
   "summary": string
 }`,
 
-      forecast: `You are a demand forecasting AI for a hypermarket. Given the product data with current stock levels, demand levels, and pricing, predict next week's demand. 
+      forecast: `You are a demand forecasting AI for a hypermarket. Given the product data with current stock levels, demand levels, pricing, AND active pricing rules, predict next week's demand. Factor in how active pricing rules (discounts, promotions, surge pricing) will influence demand patterns.
 
 Respond in JSON format:
 {
-  "weeklyForecast": [{"productId": string, "name": string, "predictedDemand": number, "confidence": number, "trend": "up"|"stable"|"down"}],
+  "weeklyForecast": [{"productId": string, "name": string, "predictedDemand": number, "confidence": number, "trend": "up"|"stable"|"down", "pricingRuleImpact": string}],
   "topMovers": [{"name": string, "change": string}],
   "summary": string,
   "confidenceScore": number
 }`,
 
-      anomaly: `You are an anomaly detection AI for a hypermarket. Analyze the product data for unusual patterns:
-- Prices significantly above/below base prices
-- Stock levels that seem abnormal
+      anomaly: `You are an anomaly detection AI for a hypermarket. You will receive product data AND active pricing rules. Analyze for unusual patterns:
+- Prices that violate active pricing rules (e.g., a high-demand item NOT marked up per the rule)
+- Stock levels that seem abnormal given the rules in place
 - Demand mismatches (high demand + low stock or vice versa)
+- Rules that conflict with each other
 - Any suspicious patterns
 
 Respond in JSON format:
 {
-  "anomalies": [{"productId": string, "name": string, "type": "price"|"stock"|"demand"|"pattern", "severity": "high"|"medium"|"low", "description": string}],
+  "anomalies": [{"productId": string, "name": string, "type": "price"|"stock"|"demand"|"pattern"|"rule_violation", "severity": "high"|"medium"|"low", "description": string, "relatedRule": string}],
   "riskScore": number,
   "summary": string
 }`,
 
-      recommendations: `You are a smart recommendations AI for a hypermarket. Based on the product data, suggest:
-1. Bundle promotions (products that go well together)
-2. Markdown candidates (slow movers)
-3. Premium upsell opportunities
-4. Seasonal strategies
+      recommendations: `You are a smart recommendations AI for a hypermarket. Based on the product data AND active pricing rules, suggest:
+1. Bundle promotions (products that go well together, considering active discounts)
+2. Markdown candidates (slow movers that aren't already covered by rules)
+3. Premium upsell opportunities (leveraging surge pricing rules)
+4. Rule optimization suggestions (which rules to adjust, add, or deactivate)
+5. Seasonal strategies
 
 Respond in JSON format:
 {
   "bundles": [{"products": [string], "discount": string, "reason": string}],
-  "markdowns": [{"name": string, "suggestedDiscount": string, "reason": string}],
+  "markdowns": [{"name": string, "suggestedDiscount": string, "reason": string, "existingRule": string}],
   "upsells": [{"name": string, "strategy": string}],
+  "ruleOptimizations": [{"ruleName": string, "suggestion": string, "expectedImpact": string}],
   "seasonal": [string],
   "summary": string
 }`
     };
 
     const systemPrompt = systemPrompts[action as AIAction];
+
+    // Fetch active pricing rules from the database
+    const serviceClient2 = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: pricingRules } = await serviceClient2
+      .from("pricing_rules")
+      .select("*")
+      .eq("is_active", true)
+      .order("priority", { ascending: false });
+
+    const rulesContext = pricingRules && pricingRules.length > 0
+      ? `\n\nACTIVE PRICING RULES (apply these when making recommendations):\n${JSON.stringify(
+          pricingRules.map((r: any) => ({
+            name: r.name,
+            type: r.rule_type,
+            adjustmentType: r.adjustment_type,
+            adjustmentValue: r.adjustment_value,
+            conditions: r.conditions,
+            priority: r.priority,
+          })),
+          null,
+          2
+        )}`
+      : "";
 
     // Sanitize product data — only send safe fields
     const productSummary = products.map((p: any) => ({
@@ -191,7 +218,7 @@ Respond in JSON format:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Here is the current product inventory data:\n${JSON.stringify(productSummary, null, 2)}` },
+          { role: "user", content: `Here is the current product inventory data:\n${JSON.stringify(productSummary, null, 2)}${rulesContext}` },
         ],
         response_format: { type: "json_object" },
       }),
