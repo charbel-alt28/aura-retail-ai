@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu, Wifi, Database, Shield, LogOut, User, ChevronDown } from 'lucide-react';
+import { NotificationsBell } from '@/components/NotificationsBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
