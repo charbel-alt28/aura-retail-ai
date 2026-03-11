@@ -248,7 +248,7 @@ export function CustomerServiceDashboard() {
           )}
 
           {/* Chat area */}
-          <div className="glow-card overflow-hidden" style={{ height: 340 }}>
+          <div className="glow-card overflow-hidden" style={{ height: 520 }}>
             <div ref={scrollRef} className="h-full overflow-y-auto py-3 space-y-1">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3">
