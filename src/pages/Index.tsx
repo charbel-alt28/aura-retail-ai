@@ -17,7 +17,7 @@ import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { useRBAC } from '@/hooks/useRBAC';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Box, TrendingUp, Users, CalendarX, ShieldCheck } from 'lucide-react';
+import { Box, TrendingUp, Users, CalendarX } from 'lucide-react';
 import { ExpiryWastageDashboard } from '@/components/ExpiryWastageDashboard';
 import { useAutoExpiryWatcher } from '@/hooks/useAutoExpiryWatcher';
 
@@ -55,12 +55,13 @@ const Index = () => {
             <PricingSalesControl />
             <AdminSystemControls />
             <AgentStatusPanel />
+            {role === 'admin' && <SecurityDashboard />}
           </motion.aside>
           
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-6">
             <div className="glow-card p-4">
               <Tabs defaultValue="inventory" className="w-full">
-                <TabsList className={cn("grid w-full mb-4 bg-muted/30", role === 'admin' ? 'grid-cols-5' : 'grid-cols-4')}>
+                <TabsList className="grid w-full grid-cols-4 mb-4 bg-muted/30">
                   <TabsTrigger value="inventory" className="font-display text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                     <Box className="h-4 w-4 mr-2" />
                     Inventory
@@ -77,21 +78,12 @@ const Index = () => {
                     <Users className="h-4 w-4 mr-2" />
                     Service
                   </TabsTrigger>
-                  {role === 'admin' && (
-                    <TabsTrigger value="security" className="font-display text-xs data-[state=active]:bg-warning data-[state=active]:text-warning-foreground">
-                      <ShieldCheck className="h-4 w-4 mr-2" />
-                      Security
-                    </TabsTrigger>
-                  )}
                 </TabsList>
                 
                 <TabsContent value="inventory" className="mt-0"><InventoryDashboard /></TabsContent>
                 <TabsContent value="expiry" className="mt-0"><ExpiryWastageDashboard /></TabsContent>
                 <TabsContent value="pricing" className="mt-0"><PricingDashboard /></TabsContent>
                 <TabsContent value="customer" className="mt-0"><CustomerServiceDashboard /></TabsContent>
-                {role === 'admin' && (
-                  <TabsContent value="security" className="mt-0"><SecurityDashboard /></TabsContent>
-                )}
               </Tabs>
             </div>
           </motion.div>
