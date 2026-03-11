@@ -1,50 +1,52 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = [
+  "https://id-preview--0e11076a-52d0-4e37-8636-cd7dbad7fa70.lovable.app",
+  "http://localhost:5173",
+  "http://localhost:8080",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 /**
- * Scheduled Expiry Check Edge Function
+ * Expiry Check Edge Function
  * 
- * Called by pg_cron every hour to:
- * 1. Scan all products with expiry dates
- * 2. Auto-flag expired items into wastage_logs
- * 3. Generate expiry alerts for items expiring within 2-3 days
- * 4. Log results to agent_logs for audit trail
- * 
- * Runs with service role — no user auth needed for cron calls.
- * For manual invocations, validates JWT.
+ * Scans products for expiry, auto-logs wastage, generates alerts.
+ * Manual calls require authenticated admin/operator/inventory_manager.
+ * Cron calls (no auth header) use service role.
  */
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // For manual calls, validate auth. For cron calls (no auth header), use service role.
     const authHeader = req.headers.get("Authorization");
     let isCronCall = false;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      // Could be a cron call — allow with service role
       isCronCall = true;
     } else {
-      // Manual call — validate user
+      // Manual call — validate user with getUser()
       const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
         global: { headers: { Authorization: authHeader } },
       });
-      const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
+      const { data: { user }, error: userError } = await userClient.auth.getUser();
+      if (userError || !user) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const userId = claimsData.claims.sub;
-      const { data: roleData } = await userClient.rpc("get_user_role", { _user_id: userId });
+      const { data: roleData } = await userClient.rpc("get_user_role", { _user_id: user.id });
       if (!roleData || !["admin", "operator", "inventory_manager"].includes(roleData)) {
         return new Response(JSON.stringify({ error: "Insufficient permissions" }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -55,15 +57,19 @@ Deno.serve(async (req) => {
     // Use service role client for DB operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Parse the request body for product data (sent from frontend or cron payload)
+    // Parse request body
     let products: any[] = [];
     try {
       const body = await req.json();
-      products = body.products || [];
+      if (!Array.isArray(body?.products)) {
+        return new Response(JSON.stringify({ error: "Invalid request: 'products' must be an array" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      products = body.products;
     } catch {
-      // Cron call with no body — return info response
       return new Response(JSON.stringify({ 
-        message: "Expiry check function ready. Send products array for scanning.",
+        message: "Expiry check function ready. Send { products: [...] } for scanning.",
         timestamp: new Date().toISOString(),
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,6 +79,12 @@ Deno.serve(async (req) => {
     if (products.length === 0) {
       return new Response(JSON.stringify({ message: "No products to scan" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (products.length > 500) {
+      return new Response(JSON.stringify({ error: "Too many products. Maximum 500 per request." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -93,40 +105,47 @@ Deno.serve(async (req) => {
     const wastageLogs: any[] = [];
 
     for (const p of products) {
-      if (!p.expiryDate) continue;
+      if (!p.expiryDate || typeof p.expiryDate !== "string") continue;
+
+      // Validate date format
+      const dateMatch = p.expiryDate.match(/^\d{4}-\d{2}-\d{2}$/);
+      if (!dateMatch) continue;
 
       const expiryDate = new Date(p.expiryDate + "T00:00:00");
+      if (isNaN(expiryDate.getTime())) continue;
+
       const diffMs = expiryDate.getTime() - now.getTime();
       const daysUntilExpiry = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const stock = Number(p.stock) || 0;
+      const price = Number(p.currentPrice) || 0;
 
-      if (daysUntilExpiry <= 0 && p.stock > 0) {
+      if (daysUntilExpiry <= 0 && stock > 0) {
         expired.push({
           ...p,
           daysUntilExpiry,
-          totalValueLost: p.stock * p.currentPrice,
+          totalValueLost: stock * price,
           recommendedAction: "Discard immediately — log as wastage",
         });
 
-        // Auto-log to wastage if not already logged today
         if (!alreadyLogged.has(p.id)) {
           wastageLogs.push({
-            product_id: p.id,
-            product_name: p.name,
-            sku: p.sku || `SKU-${String(p.id).padStart(3, "0")}`,
-            category: p.category || null,
-            quantity_discarded: p.stock,
-            unit_value: p.currentPrice,
-            total_value_lost: p.stock * p.currentPrice,
+            product_id: String(p.id).slice(0, 100),
+            product_name: String(p.name || "Unknown").slice(0, 200),
+            sku: String(p.sku || `SKU-${String(p.id).padStart(3, "0")}`).slice(0, 50),
+            category: p.category ? String(p.category).slice(0, 50) : null,
+            quantity_discarded: stock,
+            unit_value: price,
+            total_value_lost: stock * price,
             expiry_date: p.expiryDate,
             reason: "expired",
-            notes: `Auto-flagged by scheduled scan at ${new Date().toISOString()}. Location: ${p.storageLocation || "Unknown"}`,
+            notes: `Auto-flagged by scheduled scan at ${new Date().toISOString()}. Location: ${String(p.storageLocation || "Unknown").slice(0, 100)}`,
           });
         }
       } else if (daysUntilExpiry > 0 && daysUntilExpiry <= 3) {
         expiringSoon.push({
           ...p,
           daysUntilExpiry,
-          totalValueAtRisk: p.stock * p.currentPrice,
+          totalValueAtRisk: stock * price,
           recommendedAction: daysUntilExpiry <= 2
             ? "Apply 50%+ discount or donate immediately"
             : "Apply 25-30% promotional discount",
@@ -200,6 +219,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("expiry-check error:", e);
+    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
