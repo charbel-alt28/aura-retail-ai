@@ -214,7 +214,7 @@ Respond in JSON format:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Here is the current product inventory data:\n${JSON.stringify(productSummary, null, 2)}` },
+          { role: "user", content: `Here is the current product inventory data:\n${JSON.stringify(productSummary, null, 2)}${rulesContext}` },
         ],
         response_format: { type: "json_object" },
       }),
