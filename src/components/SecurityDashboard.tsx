@@ -172,7 +172,7 @@ export function SecurityDashboard() {
   const severityColor = (s: string) => s === 'critical' ? 'text-destructive border-destructive/50' : s === 'high' ? 'text-warning border-warning/50' : s === 'medium' ? 'text-accent border-accent/50' : 'text-muted-foreground border-border';
 
   return (
-    <div className="space-y-4">
+    <div className="glow-card p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
