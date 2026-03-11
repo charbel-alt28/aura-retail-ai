@@ -95,6 +95,9 @@ export function Header() {
               </div>
             </div>
 
+            <ThemeToggle />
+            <NotificationsBell />
+
             {/* User session menu */}
             {authUser && (
               <DropdownMenu>
