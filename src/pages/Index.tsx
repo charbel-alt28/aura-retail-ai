@@ -16,11 +16,13 @@ import { SecurityDashboard } from '@/components/SecurityDashboard';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 import { UserManagementPanel } from '@/components/UserManagementPanel';
 import { ExportReports } from '@/components/ExportReports';
+import { OperationsAssistant } from '@/components/OperationsAssistant';
+import { SupplierManager } from '@/components/SupplierManager';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import { useRBAC } from '@/hooks/useRBAC';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Box, TrendingUp, Users, CalendarX, BarChart3 } from 'lucide-react';
+import { Box, TrendingUp, Users, CalendarX, BarChart3, Truck } from 'lucide-react';
 import { ExpiryWastageDashboard } from '@/components/ExpiryWastageDashboard';
 import { useAutoExpiryWatcher } from '@/hooks/useAutoExpiryWatcher';
 
