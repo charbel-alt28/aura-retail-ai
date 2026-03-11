@@ -55,6 +55,7 @@ const Index = () => {
             <PricingSalesControl />
             <AdminSystemControls />
             <AgentStatusPanel />
+            {role === 'admin' && <SecurityDashboard />}
           </motion.aside>
           
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="lg:col-span-6">
