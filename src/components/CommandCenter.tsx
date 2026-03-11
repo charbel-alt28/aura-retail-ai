@@ -168,7 +168,7 @@ export function CommandCenter() {
         </div>
       </div>
 
-      <AIResultsPanel result={results} onClose={() => setResults(null)} />
+      <AIResultsPanel result={results} onClose={clearResults} />
 
       <ConfirmActionDialog
         open={!!confirmAction}
