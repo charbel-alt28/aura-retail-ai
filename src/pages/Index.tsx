@@ -93,6 +93,7 @@ const Index = () => {
                 <TabsContent value="expiry" className="mt-0"><ExpiryWastageDashboard /></TabsContent>
                 <TabsContent value="pricing" className="mt-0"><PricingDashboard /></TabsContent>
                 <TabsContent value="customer" className="mt-0"><CustomerServiceDashboard /></TabsContent>
+                <TabsContent value="analytics" className="mt-0"><AnalyticsDashboard /></TabsContent>
               </Tabs>
             </div>
           </motion.div>
