@@ -205,17 +205,28 @@ export function SecurityDashboard() {
 
   const severityColor = (s: string) => s === 'critical' ? 'text-destructive border-destructive/50' : s === 'high' ? 'text-warning border-warning/50' : s === 'medium' ? 'text-accent border-accent/50' : 'text-muted-foreground border-border';
 
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+
   return (
-    <div className="glow-card p-4 space-y-4">
+    <div className="glow-card p-4 space-y-4" onMouseMove={handlePanelActivity} onKeyDown={handlePanelActivity} onClick={handlePanelActivity}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <h2 className="font-display text-sm tracking-wider text-foreground">SECURITY CENTER</h2>
         </div>
-        <Button variant="ghost" size="sm" onClick={fetchAll} disabled={loading}>
-          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-1 text-[9px] font-display tracking-wider px-2 py-0.5 rounded border",
+            sessionRemaining <= 60 ? "text-destructive border-destructive/50 bg-destructive/10 animate-pulse" :
+            sessionRemaining <= 120 ? "text-warning border-warning/50 bg-warning/10" :
+            "text-muted-foreground border-border/50")}>
+            <Lock className="h-2.5 w-2.5" />
+            {formatTime(sessionRemaining)}
+          </div>
+          <Button variant="ghost" size="sm" onClick={fetchAll} disabled={loading}>
+            <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          </Button>
+        </div>
       </div>
 
       {/* Threat Level Banner */}
