@@ -101,11 +101,13 @@ const Index = () => {
                 <TabsContent value="pricing" className="mt-0"><PricingDashboard /></TabsContent>
                 <TabsContent value="customer" className="mt-0"><CustomerServiceDashboard /></TabsContent>
                 <TabsContent value="analytics" className="mt-0"><AnalyticsDashboard /></TabsContent>
+                <TabsContent value="suppliers" className="mt-0"><SupplierManager /></TabsContent>
               </Tabs>
             </div>
           </motion.div>
           
-          <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-3">
+          <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="lg:col-span-3 space-y-4">
+            <OperationsAssistant />
             <ActivityFeed />
           </motion.aside>
         </div>
