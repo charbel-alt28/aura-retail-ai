@@ -311,6 +311,7 @@ export default function AuthPage() {
                     </button>
                   </div>
                   {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                  <PasswordStrengthMeter password={form.password} />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs tracking-wider uppercase text-muted-foreground">Confirm Password</Label>
