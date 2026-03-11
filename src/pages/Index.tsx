@@ -60,6 +60,7 @@ const Index = () => {
             <PricingSalesControl />
             <AdminSystemControls />
             <AgentStatusPanel />
+            <SupplierManager />
             <ExportReports />
             <UserManagementPanel />
             {role === 'admin' && <SecurityDashboard />}
