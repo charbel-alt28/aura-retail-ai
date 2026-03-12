@@ -111,8 +111,15 @@ export default function AuthPage() {
     }
   };
 
+  // Signup rate limiting
+  const [signupAttempts, setSignupAttempts] = useState(0);
+  const [signupLockedUntil, setSignupLockedUntil] = useState<number | null>(null);
+  const isSignupLocked = signupLockedUntil && Date.now() < signupLockedUntil;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSignupLocked) return;
+
     const parsed = signupSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
@@ -126,7 +133,17 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      const newAttempts = signupAttempts + 1;
+      setSignupAttempts(newAttempts);
+      if (newAttempts >= 3) {
+        const lockTime = Date.now() + 120_000; // 2 min lockout
+        setSignupLockedUntil(lockTime);
+        setSignupAttempts(0);
+        toast.error('Too many signup attempts. Try again in 2 minutes.');
+        setTimeout(() => setSignupLockedUntil(null), 120_000);
+      } else {
+        toast.error(error.message);
+      }
     } else if (data.session) {
       toast.success('Account created and signed in!');
     } else {
