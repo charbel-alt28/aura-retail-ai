@@ -281,17 +281,22 @@ export function SecurityDashboard() {
               <p className="font-display text-[10px] text-primary tracking-wider">SECURITY POSTURE</p>
               {[
                 { label: 'Row-Level Security (RLS)', status: 'Active', ok: true, desc: 'All tables protected with granular policies' },
-                { label: 'JWT Verification', status: 'Enforced', ok: true, desc: 'getUser() validation on all edge functions' },
+                { label: 'JWT Verification', status: 'Enforced', ok: true, desc: 'getClaims() validation on all edge functions' },
                 { label: 'RBAC System', status: '5 Roles', ok: true, desc: 'Admin, Operator, Viewer, Inventory Mgr, Pricing Mgr' },
-                { label: 'Session Timeout', status: '15 min', ok: true, desc: 'Auto-logout on inactivity with warning' },
-                { label: 'Rate Limiting', status: '10 req/min', ok: true, desc: 'Per-user AI operation throttling' },
-                { label: 'CSP Headers', status: 'Active', ok: true, desc: 'Content Security Policy restricts script sources' },
-                { label: 'Input Validation', status: 'Zod', ok: true, desc: 'Schema validation on all forms' },
+                { label: 'Session Timeout', status: '15 min', ok: true, desc: 'Auto-logout on inactivity with 2-min warning' },
+                { label: 'Rate Limiting', status: 'Login + Signup', ok: true, desc: '5 login / 3 signup attempts before lockout' },
+                { label: 'CSP Headers', status: 'Active', ok: true, desc: 'Content Security Policy restricts script/connect sources' },
+                { label: 'X-Frame-Options', status: 'DENY', ok: true, desc: 'Prevents clickjacking via iframe embedding' },
+                { label: 'Permissions-Policy', status: 'Strict', ok: true, desc: 'Camera, mic, geolocation, payment disabled' },
+                { label: 'Input Validation', status: 'Zod', ok: true, desc: 'Schema validation on all forms & API inputs' },
                 { label: 'Password Policy', status: 'Strong', ok: true, desc: 'Uppercase, lowercase, number, special char required' },
-                { label: 'Failed Login Lockout', status: 'Active', ok: true, desc: 'Account locked after 5 failed attempts' },
+                { label: 'Failed Login Lockout', status: '5 attempts', ok: true, desc: '60s lockout after 5 failed attempts' },
+                { label: 'Signup Rate Limiting', status: '3 attempts', ok: true, desc: '120s lockout after 3 failed signup attempts' },
                 { label: 'Re-Auth for Critical Ops', status: 'Enforced', ok: true, desc: 'Password re-entry for destructive actions' },
-                { label: 'Audit Logging', status: 'Full', ok: true, desc: 'All auth events + operations logged' },
-                { label: 'CORS Origin Restriction', status: 'Strict', ok: true, desc: 'Only whitelisted origins accepted' },
+                { label: 'Security Panel Double-Gate', status: 'Active', ok: true, desc: 'Re-authentication + 5-min inactivity auto-lock' },
+                { label: 'Audit Logging', status: 'Full + IP', ok: true, desc: 'All auth events logged with IP address forensics' },
+                { label: 'Referrer Policy', status: 'Strict', ok: true, desc: 'strict-origin-when-cross-origin prevents leaks' },
+                { label: 'Edge Function Auth', status: 'Required', ok: true, desc: 'All admin functions require valid Bearer token' },
               ].map(item => (
                 <div key={item.label} className="flex items-center gap-2 bg-muted/20 rounded px-2.5 py-1.5">
                   {item.ok ? <CheckCircle className="h-3 w-3 text-success shrink-0" /> : <XCircle className="h-3 w-3 text-destructive shrink-0" />}

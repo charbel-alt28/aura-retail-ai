@@ -86,13 +86,23 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
-      // Log failed attempt to database
+      // Log failed attempt via edge function for IP capture
       try {
-        await supabaseAny.from('failed_login_attempts').insert([{
-          email: form.email,
-          user_agent: navigator.userAgent,
-        }]);
-      } catch { /* ignore logging errors */ }
+        await supabase.functions.invoke('log-audit', {
+          body: {
+            event_type: 'failed_login',
+            details: { email: form.email },
+          },
+        });
+      } catch {
+        // Fallback: direct insert without IP
+        try {
+          await supabaseAny.from('failed_login_attempts').insert([{
+            email: form.email,
+            user_agent: navigator.userAgent,
+          }]);
+        } catch { /* ignore */ }
+      }
 
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
