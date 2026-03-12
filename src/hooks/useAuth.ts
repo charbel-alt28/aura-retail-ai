@@ -90,13 +90,26 @@ export function useAuth() {
     details: Record<string, unknown> = {}
   ) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabaseAny.from('auth_audit_logs').insert([{
-      user_id: user.id,
-      event_type: eventType,
-      details,
-      user_agent: navigator.userAgent,
-    }]);
+    // Log via edge function to capture server-side IP
+    try {
+      await supabase.functions.invoke('log-audit', {
+        body: {
+          event_type: eventType,
+          details,
+          user_id: user?.id || null,
+        },
+      });
+    } catch {
+      // Fallback to direct insert (no IP capture)
+      if (user) {
+        await supabaseAny.from('auth_audit_logs').insert([{
+          user_id: user.id,
+          event_type: eventType,
+          details,
+          user_agent: navigator.userAgent,
+        }]);
+      }
+    }
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {

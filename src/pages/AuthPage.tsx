@@ -86,13 +86,23 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
-      // Log failed attempt to database
+      // Log failed attempt via edge function for IP capture
       try {
-        await supabaseAny.from('failed_login_attempts').insert([{
-          email: form.email,
-          user_agent: navigator.userAgent,
-        }]);
-      } catch { /* ignore logging errors */ }
+        await supabase.functions.invoke('log-audit', {
+          body: {
+            event_type: 'failed_login',
+            details: { email: form.email },
+          },
+        });
+      } catch {
+        // Fallback: direct insert without IP
+        try {
+          await supabaseAny.from('failed_login_attempts').insert([{
+            email: form.email,
+            user_agent: navigator.userAgent,
+          }]);
+        } catch { /* ignore */ }
+      }
 
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
@@ -111,8 +121,15 @@ export default function AuthPage() {
     }
   };
 
+  // Signup rate limiting
+  const [signupAttempts, setSignupAttempts] = useState(0);
+  const [signupLockedUntil, setSignupLockedUntil] = useState<number | null>(null);
+  const isSignupLocked = signupLockedUntil && Date.now() < signupLockedUntil;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSignupLocked) return;
+
     const parsed = signupSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
@@ -126,7 +143,17 @@ export default function AuthPage() {
     setLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      const newAttempts = signupAttempts + 1;
+      setSignupAttempts(newAttempts);
+      if (newAttempts >= 3) {
+        const lockTime = Date.now() + 120_000; // 2 min lockout
+        setSignupLockedUntil(lockTime);
+        setSignupAttempts(0);
+        toast.error('Too many signup attempts. Try again in 2 minutes.');
+        setTimeout(() => setSignupLockedUntil(null), 120_000);
+      } else {
+        toast.error(error.message);
+      }
     } else if (data.session) {
       toast.success('Account created and signed in!');
     } else {
@@ -324,8 +351,8 @@ export default function AuthPage() {
                   </div>
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button type="submit" disabled={loading || !isPasswordStrong(form.password)} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'REGISTER ACCOUNT'}
+                <Button type="submit" disabled={loading || !isPasswordStrong(form.password) || !!isSignupLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isSignupLocked ? `LOCKED (${Math.ceil(((signupLockedUntil || 0) - Date.now()) / 1000)}s)` : 'REGISTER ACCOUNT'}
                 </Button>
                 <div className="text-center text-xs">
                   <button type="button" onClick={() => switchMode('login')} className="text-muted-foreground hover:text-primary transition-colors">← Back to login</button>
