@@ -341,8 +341,8 @@ export default function AuthPage() {
                   </div>
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button type="submit" disabled={loading || !isPasswordStrong(form.password)} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'REGISTER ACCOUNT'}
+                <Button type="submit" disabled={loading || !isPasswordStrong(form.password) || !!isSignupLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isSignupLocked ? `LOCKED (${Math.ceil(((signupLockedUntil || 0) - Date.now()) / 1000)}s)` : 'REGISTER ACCOUNT'}
                 </Button>
                 <div className="text-center text-xs">
                   <button type="button" onClick={() => switchMode('login')} className="text-muted-foreground hover:text-primary transition-colors">← Back to login</button>
