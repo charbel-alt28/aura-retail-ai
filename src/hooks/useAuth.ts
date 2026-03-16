@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { storeFingerprint, validateFingerprint, clearFingerprint } from '@/lib/sessionFingerprint';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const supabaseAny = supabase as any;
