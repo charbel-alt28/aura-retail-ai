@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, Cpu, Lock, Mail, User, AlertTriangle, Loader2, Shield } from 'lucide-react';
+import { Eye, EyeOff, Cpu, Lock, Mail, User, AlertTriangle, Loader2, Shield, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { PasswordStrengthMeter, isPasswordStrong } from '@/components/PasswordStrengthMeter';
 import { supabase } from '@/integrations/supabase/client';
+import { checkPasswordBreach } from '@/lib/passwordBreach';
+import { useBotDetection } from '@/hooks/useBotDetection';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const supabaseAny = supabase as any;
@@ -46,10 +48,29 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [breachWarning, setBreachWarning] = useState<string | null>(null);
+  const [checkingBreach, setCheckingBreach] = useState(false);
 
-  // Rate limiting state
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  // Rate limiting state — separate for login and signup
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [loginLockedUntil, setLoginLockedUntil] = useState<number | null>(null);
+  const [signupAttempts, setSignupAttempts] = useState(0);
+  const [signupLockedUntil, setSignupLockedUntil] = useState<number | null>(null);
+
+  // Bot detection
+  const botDetection = useBotDetection();
+
+  const isLoginLocked = loginLockedUntil && Date.now() < loginLockedUntil;
+  const loginLockSecondsLeft = loginLockedUntil ? Math.ceil((loginLockedUntil - Date.now()) / 1000) : 0;
+  const isSignupLocked = signupLockedUntil && Date.now() < signupLockedUntil;
+
+  // Tick for countdown display
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!loginLockedUntil && !signupLockedUntil) return;
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [loginLockedUntil, signupLockedUntil]);
 
   const [form, setForm] = useState({
     displayName: '',
@@ -58,20 +79,24 @@ export default function AuthPage() {
     confirmPassword: '',
   });
 
-  const isLocked = lockedUntil && Date.now() < lockedUntil;
-  const lockSecondsLeft = lockedUntil ? Math.ceil((lockedUntil - Date.now()) / 1000) : 0;
-
   const field = (name: keyof typeof form) => ({
     value: form[name],
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm(f => ({ ...f, [name]: e.target.value }));
       setErrors(er => { const n = { ...er }; delete n[name]; return n; });
+      if (name === 'password') setBreachWarning(null);
     },
   });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLocked) return;
+    if (isLoginLocked) return;
+
+    // Bot detection
+    if (botDetection.isBot()) {
+      toast.error('Suspicious activity detected. Please try again.');
+      return;
+    }
 
     const parsed = loginSchema.safeParse(form);
     if (!parsed.success) {
@@ -95,7 +120,6 @@ export default function AuthPage() {
           },
         });
       } catch {
-        // Fallback: direct insert without IP
         try {
           await supabaseAny.from('failed_login_attempts').insert([{
             email: form.email,
@@ -104,37 +128,50 @@ export default function AuthPage() {
         } catch { /* ignore */ }
       }
 
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
       if (newAttempts >= 5) {
-        const lockTime = Date.now() + 60_000; // 60s lockout
-        setLockedUntil(lockTime);
-        setAttempts(0);
+        const lockTime = Date.now() + 60_000;
+        setLoginLockedUntil(lockTime);
+        setLoginAttempts(0);
         toast.error('Too many failed attempts. Account locked for 60 seconds.');
-        setTimeout(() => setLockedUntil(null), 60_000);
+        setTimeout(() => setLoginLockedUntil(null), 60_000);
       } else {
         toast.error(`Authentication failed: ${error.message}`);
       }
     } else {
-      setAttempts(0);
+      setLoginAttempts(0);
       toast.success('Authenticated successfully');
     }
   };
 
-  // Signup rate limiting
-  const [signupAttempts, setSignupAttempts] = useState(0);
-  const [signupLockedUntil, setSignupLockedUntil] = useState<number | null>(null);
-  const isSignupLocked = signupLockedUntil && Date.now() < signupLockedUntil;
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSignupLocked) return;
+
+    // Bot detection
+    if (botDetection.isBot()) {
+      toast.error('Suspicious activity detected. Please try again.');
+      return;
+    }
 
     const parsed = signupSchema.safeParse(form);
     if (!parsed.success) {
       const errs: Record<string, string> = {};
       parsed.error.errors.forEach(err => { if (err.path[0]) errs[String(err.path[0])] = err.message; });
       setErrors(errs);
+      return;
+    }
+
+    // Password breach check
+    setCheckingBreach(true);
+    const breachResult = await checkPasswordBreach(form.password);
+    setCheckingBreach(false);
+
+    if (breachResult.breached) {
+      setBreachWarning(
+        `This password has appeared in ${breachResult.count.toLocaleString()} data breaches. Please choose a different password.`
+      );
       return;
     }
 
@@ -146,7 +183,7 @@ export default function AuthPage() {
       const newAttempts = signupAttempts + 1;
       setSignupAttempts(newAttempts);
       if (newAttempts >= 3) {
-        const lockTime = Date.now() + 120_000; // 2 min lockout
+        const lockTime = Date.now() + 120_000;
         setSignupLockedUntil(lockTime);
         setSignupAttempts(0);
         toast.error('Too many signup attempts. Try again in 2 minutes.');
@@ -184,7 +221,9 @@ export default function AuthPage() {
   const switchMode = (m: Mode) => {
     setMode(m);
     setErrors({});
+    setBreachWarning(null);
     setForm({ displayName: '', email: '', password: '', confirmPassword: '' });
+    botDetection.startTimer(); // Reset bot timer
   };
 
   return (
@@ -230,27 +269,45 @@ export default function AuthPage() {
               <AlertTriangle className="w-3 h-3 text-warning" />
               <span>AUDIT LOGGED</span>
             </div>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <ShieldAlert className="w-3 h-3 text-accent" />
+              <span>BREACH CHECK</span>
+            </div>
           </div>
 
-          {/* Rate limit warning */}
-          {attempts >= 3 && !isLocked && (
+          {/* Honeypot field — invisible to humans, bots will fill it */}
+          <div className={botDetection.honeypotClassName} aria-hidden="true" tabIndex={-1}>
+            <label htmlFor="website_url">Website</label>
+            <input
+              id="website_url"
+              name="website_url"
+              type="text"
+              value={botDetection.honeypotValue}
+              onChange={(e) => botDetection.setHoneypotValue(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
+          {/* Rate limit warnings — ONLY show on matching mode */}
+          {mode === 'login' && loginAttempts >= 3 && !isLoginLocked && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mb-4 p-3 rounded-lg border border-warning/50 bg-warning/10 text-warning text-xs flex items-center gap-2"
             >
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>Warning: {5 - attempts} attempt(s) remaining before lockout.</span>
+              <span>Warning: {5 - loginAttempts} attempt(s) remaining before lockout.</span>
             </motion.div>
           )}
-          {isLocked && (
+          {mode === 'login' && isLoginLocked && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mb-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs flex items-center gap-2"
             >
               <Lock className="w-4 h-4 flex-shrink-0" />
-              <span>Account temporarily locked. Try again in {lockSecondsLeft}s.</span>
+              <span>Account temporarily locked. Try again in {loginLockSecondsLeft}s.</span>
             </motion.div>
           )}
 
@@ -288,7 +345,7 @@ export default function AuthPage() {
                   </div>
                   {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                 </div>
-                <Button type="submit" disabled={loading || !!isLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                <Button type="submit" disabled={loading || !!isLoginLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'AUTHENTICATE'}
                 </Button>
                 <div className="flex items-center justify-between text-xs">
@@ -339,6 +396,18 @@ export default function AuthPage() {
                   </div>
                   {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
                   <PasswordStrengthMeter password={form.password} />
+
+                  {/* Breach warning */}
+                  {breachWarning && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs flex items-start gap-2"
+                    >
+                      <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>{breachWarning}</span>
+                    </motion.div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs tracking-wider uppercase text-muted-foreground">Confirm Password</Label>
@@ -351,8 +420,16 @@ export default function AuthPage() {
                   </div>
                   {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
                 </div>
-                <Button type="submit" disabled={loading || !isPasswordStrong(form.password) || !!isSignupLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : isSignupLocked ? `LOCKED (${Math.ceil(((signupLockedUntil || 0) - Date.now()) / 1000)}s)` : 'REGISTER ACCOUNT'}
+                <Button type="submit" disabled={loading || checkingBreach || !isPasswordStrong(form.password) || !!isSignupLocked} className="w-full font-display tracking-wider bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                  {checkingBreach ? (
+                    <><Loader2 className="w-4 h-4 animate-spin mr-2" /> CHECKING BREACH DATABASE...</>
+                  ) : loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isSignupLocked ? (
+                    `LOCKED (${Math.ceil(((signupLockedUntil || 0) - Date.now()) / 1000)}s)`
+                  ) : (
+                    'REGISTER ACCOUNT'
+                  )}
                 </Button>
                 <div className="text-center text-xs">
                   <button type="button" onClick={() => switchMode('login')} className="text-muted-foreground hover:text-primary transition-colors">← Back to login</button>
