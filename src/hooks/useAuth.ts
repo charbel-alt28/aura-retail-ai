@@ -56,17 +56,34 @@ export function useAuth() {
     return { user, role, displayName };
   }, [fetchUserRole, fetchProfile]);
 
+  // Session fingerprint validation interval
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (state.session && !validateFingerprint()) {
+        console.warn('[Security] Session fingerprint mismatch — forcing logout');
+        clearFingerprint();
+        supabase.auth.signOut();
+      }
+    }, 10_000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, [state.session]);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
+          // Store fingerprint on login
+          if (event === 'SIGNED_IN') {
+            storeFingerprint();
+          }
           // Use setTimeout to avoid Supabase deadlock during trigger
           setTimeout(async () => {
             const authUser = await buildAuthUser(session.user);
             setState({ authUser, session, loading: false });
           }, 0);
         } else {
+          clearFingerprint();
           setState({ authUser: null, session: null, loading: false });
         }
       }
@@ -75,6 +92,7 @@ export function useAuth() {
     // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        storeFingerprint();
         buildAuthUser(session.user).then(authUser => {
           setState({ authUser, session, loading: false });
         });
